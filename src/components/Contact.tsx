@@ -36,18 +36,7 @@ const Contact: React.FC = () => {
     // Don't prevent default - let Netlify handle the submission
     // The form will submit to Netlify automatically
     setIsSubmitted(true);
-    // Reset form after showing success message
-    setTimeout(() => {
-      setFormData({
-        institutionName: '',
-        contactName: '',
-        email: '',
-        phone: '',
-        assetsUnderManagement: '',
-        message: ''
-      });
-      setIsSubmitted(false);
-    }, 3000);
+    // Keep success message displayed - don't reset form
   };
 
   return (

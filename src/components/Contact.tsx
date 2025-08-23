@@ -33,8 +33,8 @@ const Contact: React.FC = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Form will be handled by Netlify
+    // Don't prevent default - let Netlify handle the submission
+    // The form will submit to Netlify automatically
     setIsSubmitted(true);
     // Reset form after showing success message
     setTimeout(() => {

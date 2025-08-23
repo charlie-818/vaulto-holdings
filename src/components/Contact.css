@@ -3,8 +3,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-  color: #ffffff;
+  background-color: var(--background-color);
+  color: var(--text-primary);
 }
 
 .main-content {
@@ -16,13 +16,13 @@
 }
 
 .contact-form-container {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 12px;
   padding: 2rem;
   width: 100%;
   max-width: 600px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .contact-form {
@@ -44,8 +44,8 @@
 }
 
 .form-group label {
-  font-weight: 500;
-  color: #e0e0e0;
+  font-weight: 600;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
@@ -53,47 +53,51 @@
 .form-group select,
 .form-group textarea {
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #4a90e2;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .submit-button {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
+  background-color: #000000;
+  color: #ffffff;
   border: none;
+  border-radius: 8px;
   padding: 1rem 2rem;
-  border-radius: 6px;
-  font-weight: 600;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
   margin-top: 1rem;
 }
 
 .submit-button:hover {
-  background: linear-gradient(135deg, #357abd 0%, #2d6da3 100%);
-  transform: translateY(-1px);
+  background-color: #333333;
 }
 
 .submit-button:active {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 .hidden {
@@ -107,14 +111,14 @@
 }
 
 .success-message h3 {
-  color: #4ade80;
+  color: var(--success-color);
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
 .success-message p {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 1rem;
   margin: 0;
 }

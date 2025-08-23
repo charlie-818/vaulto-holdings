@@ -46,5 +46,22 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    
+    <!-- Hidden form for Netlify form detection -->
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="institutionName" />
+      <input type="text" name="contactName" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <select name="assetsUnderManagement">
+        <option value="under-100m">Under $100M</option>
+        <option value="100m-500m">$100M - $500M</option>
+        <option value="500m-1b">$500M - $1B</option>
+        <option value="1b-5b">$1B - $5B</option>
+        <option value="5b-10b">$5B - $10B</option>
+        <option value="over-10b">Over $10B</option>
+      </select>
+      <textarea name="message"></textarea>
+    </form>
   </body>
 </html>

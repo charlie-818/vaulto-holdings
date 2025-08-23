@@ -104,6 +104,10 @@
   transform: translateY(1px);
 }
 
+.hidden {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 1rem 0;

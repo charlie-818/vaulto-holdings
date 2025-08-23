@@ -100,12 +100,13 @@ const Contact: React.FC = () => {
                   required
                 >
                   <option value="">Select range</option>
-                  <option value="under-100m">Under $100M</option>
-                  <option value="100m-500m">$100M - $500M</option>
-                  <option value="500m-1b">$500M - $1B</option>
-                  <option value="1b-5b">$1B - $5B</option>
-                  <option value="5b-10b">$5B - $10B</option>
-                  <option value="over-10b">Over $10B</option>
+                  <option value="under-1m">Under $1M</option>
+                  <option value="1m-5m">$1M - $5M</option>
+                  <option value="5m-10m">$5M - $10M</option>
+                  <option value="10m-25m">$10M - $25M</option>
+                  <option value="25m-50m">$25M - $50M</option>
+                  <option value="50m-100m">$50M - $100M</option>
+                  <option value="over-100m">Over $100M</option>
                 </select>
               </div>
 

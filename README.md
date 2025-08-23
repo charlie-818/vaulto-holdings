@@ -1,6 +1,6 @@
-# Vaulto.ai Hyperliquid Ethereum Vault Dashboard
+# Vaulto Holdings Dashboard
 
-A professional, data-centric web dashboard for Vaulto.ai's Hyperliquid Ethereum Vault, providing real-time leverage, exposure, and performance metrics. Built with React, TypeScript, and modern web technologies.
+A professional, data-centric web dashboard for Vaulto Holdings' Ethereum Vault, providing real-time leverage, exposure, and performance metrics. Built with React, TypeScript, and modern web technologies.
 
 ## Features
 
@@ -36,11 +36,12 @@ A professional, data-centric web dashboard for Vaulto.ai's Hyperliquid Ethereum 
 - **Animations**: Framer Motion for smooth interactions
 - **Data**: CoinGecko API for real ETH price data with fallback mock data
 - **HTTP Client**: Axios for API requests
+- **Routing**: React Router for navigation
 
 ## API Integration
 
 ### CoinGecko Integration
-The dashboard now integrates with CoinGecko API to provide:
+The dashboard integrates with CoinGecko API to provide:
 - **Real-time ETH Price**: Accurate current Ethereum price
 - **Daily Change Percentage**: Precise 24-hour price change
 - **Historical Price Data**: 365-day price chart for performance visualization
@@ -67,7 +68,7 @@ The dashboard now integrates with CoinGecko API to provide:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/charlie-818/vaulto-holdings.git
 cd vaulto-holdings
 ```
 
@@ -89,6 +90,36 @@ npm start
 npm run build
 ```
 
+## Deployment
+
+### Netlify Deployment
+
+This project is configured for easy deployment on Netlify:
+
+1. **Connect to GitHub**: Link your GitHub repository to Netlify
+2. **Build Settings**: 
+   - Build command: `npm run build`
+   - Publish directory: `build`
+   - Node version: 18
+3. **Environment Variables**: No additional environment variables required
+4. **Deploy**: Netlify will automatically deploy on every push to main branch
+
+### Manual Deployment
+
+1. Build the project:
+```bash
+npm run build
+```
+
+2. Deploy the `build` folder to your hosting provider
+
+### Netlify Configuration
+
+The project includes:
+- `netlify.toml` - Build configuration
+- `public/_redirects` - SPA routing support
+- Proper React Router setup for client-side routing
+
 ## Project Structure
 
 ```
@@ -99,6 +130,7 @@ src/
 │   ├── ETHTicker.tsx   # ETH price ticker
 │   ├── MetricCard.tsx  # Reusable metric display
 │   ├── PerformanceChart.tsx # Ethereum price performance visualization
+│   ├── Contact.tsx     # Institutional contact form
 │   └── Footer.tsx      # Footer with data sources
 ├── services/           # API services
 │   └── api.ts         # CoinGecko API integration and caching
@@ -160,8 +192,16 @@ The dashboard now uses real ETH price data from CoinGecko:
 
 ## License
 
-This project is proprietary software for Vaulto.ai.
+This project is proprietary software for Vaulto Holdings.
 
 ## Support
 
-For questions or support, contact the Vaulto.ai team.
+For questions or support, contact the Vaulto Holdings team.
+
+## Live Demo
+
+Visit the live dashboard: [Vaulto Holdings Dashboard](https://vaulto-holdings.netlify.app)
+
+## Repository
+
+GitHub: https://github.com/charlie-818/vaulto-holdings

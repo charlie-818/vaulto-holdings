@@ -35,7 +35,7 @@ const Contact: React.FC = () => {
       <main className="main-content">
         <div className="container">
           <div className="contact-form-container">
-            <form className="contact-form" onSubmit={handleSubmit} netlify name="contact" data-netlify-honeypot="bot-field">
+            <form className="contact-form" onSubmit={handleSubmit} data-netlify="true" name="contact" data-netlify-honeypot="bot-field">
               <p className="hidden">
                 <label>
                   Don't fill this out if you're human: <input name="bot-field" />

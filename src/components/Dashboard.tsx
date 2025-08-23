@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { VaultMetrics, PerformanceMetrics, VaultActivity, VaultStatistics, DataSource, ETHPriceData } from '../types';
-import { mockVaultMetrics, mockPerformanceMetrics, mockVaultActivity, mockVaultStatistics, mockDataSources } from '../data/mockData';
+import { VaultMetrics, PerformanceMetrics, VaultStatistics, DataSource, ETHPriceData } from '../types';
+import { mockVaultMetrics, mockPerformanceMetrics, mockVaultStatistics, mockDataSources } from '../data/mockData';
 import { marketAPI } from '../services/api';
 import Header from './Header';
-import ETHTicker from './ETHTicker';
 import MetricCard from './MetricCard';
 import PerformanceChart from './PerformanceChart';
 import Footer from './Footer';
@@ -11,9 +10,11 @@ import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const [vaultMetrics, setVaultMetrics] = useState<VaultMetrics>(mockVaultMetrics);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>(mockPerformanceMetrics);
-  const [vaultActivity, setVaultActivity] = useState<VaultActivity>(mockVaultActivity);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [vaultStatistics, setVaultStatistics] = useState<VaultStatistics>(mockVaultStatistics);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
   const [ethPriceData, setEthPriceData] = useState<ETHPriceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,32 +62,6 @@ const Dashboard: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Generate mock performance data for chart (keeping this for now as fallback)
-  const generatePerformanceData = () => {
-    const data = [];
-    const startDate = new Date('2024-01-01');
-    let currentValue = 8000000; // Starting value
-    
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      
-      // Add some realistic volatility
-      const change = (Math.random() - 0.5) * 0.1; // ±5% daily change
-      currentValue *= (1 + change);
-      
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        value: currentValue,
-        nav: currentValue / (ethPriceData?.current || vaultMetrics.ethPrice.current)
-      });
-    }
-    
-    return data;
-  };
-
-  const performanceData = generatePerformanceData();
 
   if (loading) {
     return (

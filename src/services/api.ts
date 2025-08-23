@@ -4,7 +4,6 @@ import { VaultMetrics, PerformanceMetrics, VaultActivity, VaultStatistics, CoinG
 // API base URLs - replace with actual endpoints
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.vaulto.ai';
 const HYPERLIQUID_API = process.env.REACT_APP_HYPERLIQUID_API || 'https://api.hyperliquid.xyz';
-const CHAINLINK_API = process.env.REACT_APP_CHAINLINK_API || 'https://api.chainlink.org';
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
 // Simple cache for API responses

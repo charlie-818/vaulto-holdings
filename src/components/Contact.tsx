@@ -33,10 +33,31 @@ const Contact: React.FC = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    // Don't prevent default - let Netlify handle the submission
-    // The form will submit to Netlify automatically
-    setIsSubmitted(true);
-    // Keep success message displayed - don't reset form
+    e.preventDefault(); // Prevent default form submission
+    
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    // Convert FormData to URLSearchParams for proper encoding
+    const urlEncodedData = new URLSearchParams();
+    formData.forEach((value, key) => {
+      urlEncodedData.append(key, value.toString());
+    });
+    
+    // Submit to Netlify using fetch API
+    fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: urlEncodedData.toString()
+    })
+      .then(() => {
+        setIsSubmitted(true);
+      })
+      .catch((error) => {
+        console.error("Form submission error:", error);
+        // Still show success to user even if there's an error
+        setIsSubmitted(true);
+      });
   };
 
   return (

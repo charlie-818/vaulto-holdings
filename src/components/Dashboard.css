@@ -5,11 +5,15 @@
 
 .main-content {
   padding: 2rem 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .hero-section {
   background-color: var(--background-color);
-  padding: 3rem 2rem;
+  padding: 3rem 1rem;
   margin-bottom: 3rem;
   text-align: center;
 }
@@ -80,12 +84,14 @@
   border: none;
   color: #000000;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   border-radius: 4px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .copy-button-mini:hover {
@@ -93,8 +99,8 @@
 }
 
 .copy-button-mini svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .loading-container {
@@ -120,6 +126,7 @@
 
 .primary-metrics {
   margin-bottom: 3rem;
+  padding: 0 1rem;
 }
 
 .metrics-grid {
@@ -130,6 +137,7 @@
 
 .performance-section {
   margin-bottom: 3rem;
+  padding: 0 1rem;
 }
 
 .performance-grid {
@@ -156,9 +164,12 @@
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   min-height: 430px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .secondary-metrics {
@@ -181,16 +192,35 @@
   gap: 1.5rem;
 }
 
+/* Tablet Breakpoint */
 @media (max-width: 1024px) {
+  .main-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
   .performance-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+  
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  
+  .risk-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
 }
 
+/* Mobile Breakpoint */
 @media (max-width: 768px) {
   .main-content {
-    padding: 1rem 0;
+    padding: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
   
   .hero-section {
@@ -198,19 +228,27 @@
   }
   
   .price-value {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
   
   .price-change {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    padding: 0.75rem 1rem;
   }
   
   .address-text {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   
   .copy-button-mini {
-    font-size: 0.75rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+  
+  .copy-button-mini svg {
+    width: 18px;
+    height: 18px;
   }
   
   .metrics-grid {
@@ -220,10 +258,59 @@
   
   .section-title {
     font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
   
   .risk-cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  .performance-chart-wrapper {
+    padding: 1rem;
+    min-height: 350px;
+  }
+  
+  .primary-metrics,
+  .performance-section,
+  .risk-section {
+    padding: 0 0.5rem;
+  }
+}
+
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .hero-section {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .price-value {
+    font-size: 2rem;
+  }
+  
+  .price-change {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+  }
+  
+  .performance-chart-wrapper {
+    padding: 0.75rem;
+    min-height: 300px;
+  }
+  
+  .primary-metrics,
+  .performance-section,
+  .risk-section {
+    padding: 0 0.25rem;
   }
 }

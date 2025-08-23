@@ -1,6 +1,7 @@
 .performance-chart {
   background-color: var(--background-color);
   padding: 1.5rem;
+  width: 100%;
 }
 
 .chart-header {
@@ -19,6 +20,9 @@
   border-radius: 12px;
   padding: 20px;
   height: 400px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .loading, .error {
@@ -28,12 +32,31 @@
   height: 300px;
   font-size: 16px;
   color: #6b7280;
+  text-align: center;
+  padding: 1rem;
 }
 
 .error {
   color: #ef4444;
 }
 
+/* Tablet Breakpoint */
+@media (max-width: 1024px) {
+  .performance-chart {
+    padding: 1.25rem;
+  }
+  
+  .chart-container {
+    height: 350px;
+    padding: 16px;
+  }
+  
+  .chart-header h3 {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile Breakpoint */
 @media (max-width: 768px) {
   .performance-chart {
     padding: 1rem;
@@ -41,5 +64,39 @@
   
   .chart-container {
     height: 300px;
+    padding: 12px;
+    width: 95%;
+    margin: 0 auto;
+  }
+  
+  .chart-header h3 {
+    font-size: 0.95rem;
+  }
+  
+  .loading, .error {
+    height: 250px;
+    font-size: 14px;
+  }
+}
+
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+  .performance-chart {
+    padding: 0.75rem;
+  }
+  
+  .chart-container {
+    height: 280px;
+    padding: 8px;
+    width: 98%;
+  }
+  
+  .chart-header h3 {
+    font-size: 0.9rem;
+  }
+  
+  .loading, .error {
+    height: 200px;
+    font-size: 13px;
   }
 }

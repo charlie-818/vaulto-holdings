@@ -1,0 +1,45 @@
+.performance-chart {
+  background-color: var(--background-color);
+  padding: 1.5rem;
+}
+
+.chart-header {
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.chart-container {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  height: 400px;
+}
+
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.error {
+  color: #ef4444;
+}
+
+@media (max-width: 768px) {
+  .performance-chart {
+    padding: 1rem;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}

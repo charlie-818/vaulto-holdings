@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import Header from './Header';
-import Footer from './Footer';
-import { mockDataSources } from '../data/mockData';
+import { Header } from './Header';
+import { Footer } from './Footer';
 import './Contact.css';
 
+interface FormData {
+  institutionName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  assetsUnderManagement: string;
+  message: string;
+}
+
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     institutionName: '',
     contactName: '',
     email: '',
@@ -13,34 +21,48 @@ const Contact: React.FC = () => {
     assetsUnderManagement: '',
     message: ''
   });
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Contact form submitted:', formData);
-    // You can add API call or email service here
+    // Form will be handled by Netlify
+    setIsSubmitted(true);
+    // Reset form after showing success message
+    setTimeout(() => {
+      setFormData({
+        institutionName: '',
+        contactName: '',
+        email: '',
+        phone: '',
+        assetsUnderManagement: '',
+        message: ''
+      });
+      setIsSubmitted(false);
+    }, 3000);
   };
 
   return (
     <div className="contact-page">
       <Header />
-      
       <main className="main-content">
-        <div className="container">
-          <div className="contact-form-container">
+        <div className="contact-form-container">
+          {!isSubmitted ? (
             <form className="contact-form" onSubmit={handleSubmit} data-netlify="true" name="contact" data-netlify-honeypot="bot-field">
+              <input type="hidden" name="form-name" value="contact" />
               <p className="hidden">
                 <label>
                   Don't fill this out if you're human: <input name="bot-field" />
                 </label>
               </p>
+              
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="institutionName">Institution Name *</label>
@@ -68,7 +90,7 @@ const Contact: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="email">Email Address *</label>
+                  <label htmlFor="email">Email *</label>
                   <input
                     type="email"
                     id="email"
@@ -79,7 +101,7 @@ const Contact: React.FC = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="phone">Phone Number</label>
+                  <label htmlFor="phone">Phone</label>
                   <input
                     type="tel"
                     id="phone"
@@ -118,7 +140,6 @@ const Contact: React.FC = () => {
                   value={formData.message}
                   onChange={handleChange}
                   rows={4}
-                  placeholder="Tell us about your interest in Vaulto Holdings and how we can help..."
                   required
                 />
               </div>
@@ -127,11 +148,15 @@ const Contact: React.FC = () => {
                 Send Message
               </button>
             </form>
-          </div>
+          ) : (
+            <div className="success-message">
+              <h3>Message Sent</h3>
+              <p>Thank you for your interest. We'll be in touch soon.</p>
+            </div>
+          )}
         </div>
       </main>
-      
-      <Footer dataSources={mockDataSources} />
+      <Footer />
     </div>
   );
 };

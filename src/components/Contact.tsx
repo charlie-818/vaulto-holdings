@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Header } from './Header';
-import { Footer } from './Footer';
+import Header from './Header';
+import Footer from './Footer';
+import { mockDataSources } from '../data/mockData';
 import './Contact.css';
 
 interface FormData {
@@ -156,7 +157,7 @@ const Contact: React.FC = () => {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer dataSources={mockDataSources} />
     </div>
   );
 };

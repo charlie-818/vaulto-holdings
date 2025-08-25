@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './MetricCard.css';
 
 interface MetricCardProps {
@@ -22,13 +22,80 @@ const MetricCard: React.FC<MetricCardProps> = ({
   isDanger = false,
   tooltip
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const isPositive = change && change.percent >= 0;
   
+  const handleInfoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowTooltip(!showTooltip);
+  };
+
+  const handleTooltipClose = () => {
+    setShowTooltip(false);
+  };
+
+  // Handle click outside to close tooltip
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowTooltip(false);
+      }
+    };
+
+    if (showTooltip) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showTooltip]);
+  
   return (
-    <div className={`metric-card ${isDanger ? 'danger' : ''}`} title={tooltip}>
+    <div className={`metric-card ${isDanger ? 'danger' : ''}`}>
       <div className="metric-header">
         <h3 className="metric-title">{title}</h3>
-        {tooltip && <span className="tooltip-icon">ⓘ</span>}
+        {tooltip && (
+          <div className="tooltip-container" ref={tooltipRef}>
+            <button 
+              className="tooltip-icon" 
+              onClick={handleInfoClick}
+              aria-label={`More information about ${title}`}
+            >
+              ⓘ
+            </button>
+            {showTooltip && (
+              <div className="tooltip-dialog">
+                <div className="tooltip-content">
+                  <div className="tooltip-header">
+                    <h4>{title}</h4>
+                    <button 
+                      className="tooltip-close" 
+                      onClick={handleTooltipClose}
+                      aria-label="Close tooltip"
+                      autoFocus
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="tooltip-body">
+                    {tooltip}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="metric-value">

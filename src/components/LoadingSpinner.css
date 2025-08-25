@@ -1,0 +1,156 @@
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  min-height: 200px;
+}
+
+.loading-spinner-container.small {
+  min-height: 120px;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.loading-spinner-container.large {
+  min-height: 300px;
+  gap: 2rem;
+  padding: 3rem;
+}
+
+/* Minimal black and white loading wheel */
+.loading-wheel {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #000000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-container.small .loading-wheel {
+  width: 30px;
+  height: 30px;
+  border-width: 2px;
+  border-top-width: 2px;
+}
+
+.loading-spinner-container.large .loading-wheel {
+  width: 50px;
+  height: 50px;
+  border-width: 4px;
+  border-top-width: 4px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-message {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner-container.small .loading-message {
+  font-size: 0.9rem;
+}
+
+.loading-spinner-container.large .loading-message {
+  font-size: 1.2rem;
+}
+
+.loading-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 200px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #000000;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .loading-wheel {
+    border-color: #374151;
+    border-top-color: #ffffff;
+  }
+  
+  .loading-message {
+    color: #9ca3af;
+  }
+  
+  .progress-bar {
+    background: #374151;
+  }
+  
+  .progress-fill {
+    background: #ffffff;
+  }
+  
+  .progress-text {
+    color: #f9fafb;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .loading-spinner-container {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+  
+  .loading-message {
+    font-size: 0.9rem;
+  }
+  
+  .progress-bar {
+    height: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .loading-spinner-container {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .loading-message {
+    font-size: 0.85rem;
+  }
+}

@@ -1,31 +1,78 @@
 import axios from 'axios';
-import { VaultMetrics, PerformanceMetrics, VaultActivity, VaultStatistics, CoinGeckoPriceResponse, CoinGeckoMarketChartResponse, ETHPriceData } from '../types';
+import { VaultMetrics, PerformanceMetrics, VaultActivity, VaultStatistics, CoinGeckoMarketChartResponse, ETHPriceData } from '../types';
 
 // API base URLs - replace with actual endpoints
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.vaulto.ai';
 const HYPERLIQUID_API = process.env.REACT_APP_HYPERLIQUID_API || 'https://api.hyperliquid.xyz';
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
-// Multiple price sources for redundancy
-const PRICE_SOURCES = {
-  COINGECKO: 'https://api.coingecko.com/api/v3',
-  BINANCE: 'https://api.binance.com/api/v3',
-  COINBASE: 'https://api.coinbase.com/v2',
-  KRAKEN: 'https://api.kraken.com/0'
-};
-
 // Vault address - Vaulto Holdings main vault
 const VAULT_ADDRESS = '0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a';
 
 // Simple cache for API responses
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 60000; // 60 seconds - increased to respect CoinGecko rate limits
+const CACHE_DURATION = 60000; // 60 seconds - cache duration for yfinance data
 
+// Performance optimizations
+const CONNECTION_TIMEOUT = 8000; // Reduced timeout for faster failure detection
+// Removed unused variables for request batching
+
+// Removed unused connectionPool
+
+// Performance monitoring
+const performanceMetrics = {
+  cacheHits: 0,
+  cacheMisses: 0,
+  requestTimes: new Map<string, number[]>(),
+  errors: new Map<string, number>()
+};
+
+const trackRequestTime = (operation: string, startTime: number) => {
+  const duration = Date.now() - startTime;
+  if (!performanceMetrics.requestTimes.has(operation)) {
+    performanceMetrics.requestTimes.set(operation, []);
+  }
+  performanceMetrics.requestTimes.get(operation)!.push(duration);
+  
+  // Keep only last 100 measurements
+  const times = performanceMetrics.requestTimes.get(operation)!;
+  if (times.length > 100) {
+    times.shift();
+  }
+};
+
+const trackError = (operation: string) => {
+  const current = performanceMetrics.errors.get(operation) || 0;
+  performanceMetrics.errors.set(operation, current + 1);
+};
+
+const getPerformanceStats = () => {
+  const stats: any = {
+    cacheHitRate: performanceMetrics.cacheHits / (performanceMetrics.cacheHits + performanceMetrics.cacheMisses) * 100,
+    averageRequestTimes: {},
+    errorRates: {}
+  };
+  
+  performanceMetrics.requestTimes.forEach((times, operation) => {
+    stats.averageRequestTimes[operation] = times.reduce((a, b) => a + b, 0) / times.length;
+  });
+  
+  performanceMetrics.errors.forEach((count, operation) => {
+    const totalRequests = (performanceMetrics.requestTimes.get(operation)?.length || 0) + count;
+    stats.errorRates[operation] = totalRequests > 0 ? (count / totalRequests) * 100 : 0;
+  });
+  
+  return stats;
+};
+
+// Enhanced cache functions with performance tracking
 const getCachedData = (key: string) => {
   const cached = cache.get(key);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    performanceMetrics.cacheHits++;
     return cached.data;
   }
+  performanceMetrics.cacheMisses++;
   return null;
 };
 
@@ -44,6 +91,10 @@ const isDataStale = (key: string, maxAge: number = CACHE_DURATION) => {
 const invalidateCache = (key: string) => {
   cache.delete(key);
 };
+
+// Removed unused processRequestQueue function
+
+// Removed unused queueRequest function
 
 // Validate price data quality
 const validatePriceData = (data: any, asset: string): boolean => {
@@ -71,20 +122,28 @@ const validatePriceData = (data: any, asset: string): boolean => {
 // API client configuration
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: CONNECTION_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Performance optimizations
+  maxRedirects: 3,
+  maxContentLength: 10 * 1024 * 1024, // 10MB
 });
 
 // Hyperliquid API client
 const hyperliquidClient = axios.create({
   baseURL: HYPERLIQUID_API,
-  timeout: 15000,
+  timeout: CONNECTION_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Performance optimizations
+  maxRedirects: 3,
+  maxContentLength: 10 * 1024 * 1024, // 10MB
 });
+
+// Removed unused coinGeckoClient
 
 // Hyperliquid API functions
 export const hyperliquidAPI = {
@@ -395,77 +454,70 @@ export const vaultAPI = {
 
 // Market data API
 export const marketAPI = {
-  // Robust price fetching with multiple fallback sources
+  // Fetch price using multiple reliable sources with fallbacks
   fetchPriceWithFallbacks: async (coin: 'ETH' | 'BTC'): Promise<{ current: number; dailyChangePercent: number }> => {
+    const cacheKey = `price_${coin.toLowerCase()}`;
+    const cached = getCachedData(cacheKey);
+    if (cached && validatePriceData(cached, coin)) {
+      return cached;
+    }
+
     const sources = [
-      // Primary source: CoinGecko
+      // Primary: CoinGecko (most reliable for crypto)
       async () => {
-        const response = await axios.get(
-          `${PRICE_SOURCES.COINGECKO}/simple/price?ids=${coin === 'ETH' ? 'ethereum' : 'bitcoin'}&vs_currencies=usd&include_24hr_change=true`,
-          { timeout: 10000 }
-        );
-        const data = response.data[coin === 'ETH' ? 'ethereum' : 'bitcoin'];
+        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin === 'ETH' ? 'ethereum' : 'bitcoin'}&vs_currencies=usd&include_24hr_change=true`);
+        if (!response.ok) throw new Error(`CoinGecko failed: ${response.status}`);
+        const data = await response.json();
+        const coinData = data[coin === 'ETH' ? 'ethereum' : 'bitcoin'];
         return {
-          current: data.usd,
-          dailyChangePercent: data.usd_24h_change || 0
+          current: coinData.usd,
+          dailyChangePercent: coinData.usd_24h_change || 0
         };
       },
-      // Fallback 1: Binance
+      // Fallback: Binance API
       async () => {
         const symbol = coin === 'ETH' ? 'ETHUSDT' : 'BTCUSDT';
-        const response = await axios.get(`${PRICE_SOURCES.BINANCE}/ticker/24hr?symbol=${symbol}`, { timeout: 10000 });
-        const data = response.data;
+        const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
+        if (!response.ok) throw new Error(`Binance failed: ${response.status}`);
+        const data = await response.json();
         return {
           current: parseFloat(data.lastPrice),
           dailyChangePercent: parseFloat(data.priceChangePercent)
         };
       },
-      // Fallback 2: Coinbase
+      // Fallback: Coinbase API
       async () => {
         const currency = coin === 'ETH' ? 'ETH' : 'BTC';
-        const response = await axios.get(`${PRICE_SOURCES.COINBASE}/prices/${currency}-USD/spot`, { timeout: 10000 });
-        const data = response.data.data;
+        const response = await fetch(`https://api.coinbase.com/v2/prices/${currency}-USD/spot`);
+        if (!response.ok) throw new Error(`Coinbase failed: ${response.status}`);
+        const data = await response.json();
         return {
-          current: parseFloat(data.amount),
+          current: parseFloat(data.data.amount),
           dailyChangePercent: 0 // Coinbase doesn't provide 24h change in this endpoint
-        };
-      },
-      // Fallback 3: Kraken
-      async () => {
-        const pair = coin === 'ETH' ? 'XETHZUSD' : 'XXBTZUSD';
-        const response = await axios.get(`${PRICE_SOURCES.KRAKEN}/public/Ticker?pair=${pair}`, { timeout: 10000 });
-        const data = response.data.result[pair];
-        return {
-          current: parseFloat(data.c[0]),
-          dailyChangePercent: parseFloat(data.p[1]) // 24h change
         };
       }
     ];
 
-    let lastError: any;
-    
     // Try each source in order
     for (let i = 0; i < sources.length; i++) {
       try {
         console.log(`Trying price source ${i + 1} for ${coin}...`);
         const result = await sources[i]();
         
-        // Validate the result
-        if (result.current > 0 && result.current < (coin === 'ETH' ? 100000 : 1000000)) {
-          console.log(`Successfully fetched ${coin} price from source ${i + 1}: $${result.current}`);
+        if (validatePriceData(result, coin)) {
+          console.log(`Successfully fetched ${coin} price from source ${i + 1}: $${result.current} (${result.dailyChangePercent.toFixed(2)}%)`);
+          setCachedData(cacheKey, result);
           return result;
-        } else {
-          throw new Error(`Invalid price data: $${result.current}`);
         }
       } catch (error) {
-        lastError = error;
         console.error(`Price source ${i + 1} failed for ${coin}:`, error);
-        continue;
+        if (i === sources.length - 1) {
+          throw new Error(`All price sources failed for ${coin}: ${(error as any)?.message || 'Unknown error'}`);
+        }
       }
     }
 
-    // If all sources failed, throw error
-    throw new Error(`All price sources failed for ${coin}: ${(lastError as any)?.message || 'Unknown error'}`);
+    throw new Error(`All price sources failed for ${coin}`);
   },
   // Get ETH price with robust fallback system
   getETHPrice: async (): Promise<ETHPriceData> => {
@@ -521,7 +573,7 @@ export const marketAPI = {
     }
   },
 
-  // Get both ETH and BTC prices efficiently in a single batch request
+  // Get both ETH and BTC prices efficiently using reliable sources
   getCryptoPrices: async (): Promise<{ eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } }> => {
     const cacheKey = 'crypto_prices_batch';
     const cached = getCachedData(cacheKey);
@@ -529,58 +581,43 @@ export const marketAPI = {
       return cached;
     }
 
-    const maxRetries = 3;
-    let lastError: any;
+    try {
+      console.log('Fetching crypto prices from reliable sources...');
+      
+      // Try CoinGecko first (most reliable for crypto)
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd&include_24hr_change=true');
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.ethereum && data.bitcoin) {
+          const ethPrice = {
+            current: data.ethereum.usd,
+            dailyChange: (data.ethereum.usd * (data.ethereum.usd_24h_change || 0)) / 100,
+            dailyChangePercent: data.ethereum.usd_24h_change || 0,
+            timestamp: Date.now()
+          };
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await axios.get<CoinGeckoPriceResponse>(
-          `${COINGECKO_API}/simple/price?ids=ethereum,bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`,
-          {
-            timeout: 15000,
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Vaulto-Dashboard/1.0'
-            }
+          const btcPrice = {
+            current: data.bitcoin.usd,
+            dailyChangePercent: data.bitcoin.usd_24h_change || 0
+          };
+
+          const result = { eth: ethPrice, btc: btcPrice };
+          
+          if (validatePriceData(ethPrice, 'ETH') && validatePriceData(btcPrice, 'BTC')) {
+            console.log('Successfully fetched crypto prices from CoinGecko:', {
+              ETH: `$${ethPrice.current} (${ethPrice.dailyChangePercent.toFixed(2)}%)`,
+              BTC: `$${btcPrice.current} (${btcPrice.dailyChangePercent.toFixed(2)}%)`
+            });
+            setCachedData(cacheKey, result);
+            return result;
           }
-        );
-        
-        if (!response.data.ethereum || !response.data.bitcoin) {
-          throw new Error('Crypto price data not available in response');
-        }
-
-        const ethData = response.data.ethereum;
-        const btcData = response.data.bitcoin;
-        
-        const ethPrice = {
-          current: ethData.usd,
-          dailyChange: (ethData.usd * (ethData.usd_24h_change || 0)) / 100,
-          dailyChangePercent: ethData.usd_24h_change || 0,
-          timestamp: Date.now()
-        };
-
-        const btcPrice = {
-          current: btcData.usd,
-          dailyChangePercent: btcData.usd_24h_change || 0
-        };
-
-        const result = { eth: ethPrice, btc: btcPrice };
-        setCachedData(cacheKey, result);
-        return result;
-      } catch (error) {
-        lastError = error;
-        console.error(`Error fetching crypto prices from CoinGecko (attempt ${attempt}/${maxRetries}):`, error);
-        
-        if (attempt < maxRetries) {
-          // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
-    }
-
-    // If all retries failed, fetch prices individually as fallback
-    console.warn('Batch crypto price fetch failed, trying individual requests');
-    try {
+      
+      // If CoinGecko fails, try individual sources
+      console.log('CoinGecko failed, trying individual sources...');
       const [ethPrice, btcPrice] = await Promise.all([
         marketAPI.getETHPrice(),
         marketAPI.getBTCPrice()
@@ -589,9 +626,9 @@ export const marketAPI = {
       const result = { eth: ethPrice, btc: btcPrice };
       setCachedData(cacheKey, result);
       return result;
+      
     } catch (error) {
-      console.error('Individual crypto price fetch also failed:', error);
-      // NEVER return fallback data - throw error instead
+      console.error('Crypto price fetch failed:', error);
       throw new Error(`Failed to fetch crypto prices: ${(error as any)?.message || 'Unknown error'}`);
     }
   },
@@ -603,97 +640,69 @@ export const marketAPI = {
     invalidateCache('btc_price');
     invalidateCache('crypto_prices_batch');
     
-    // Fetch fresh prices
+    // Fetch fresh prices from reliable sources
     return marketAPI.getCryptoPrices();
-  },
-
-  // Check if price data is stale and needs refresh
-  isPriceDataStale: (): boolean => {
-    return isDataStale('crypto_prices_batch') || 
-           isDataStale('eth_price') || 
-           isDataStale('btc_price');
   },
 
   // Get cache status for debugging
   getCacheStatus: () => {
-    const status: { [key: string]: { exists: boolean; age: number; valid: boolean } } = {};
-    
-    ['eth_price', 'btc_price', 'crypto_prices_batch'].forEach(key => {
-      const cached = cache.get(key);
-      if (cached) {
-        const age = Date.now() - cached.timestamp;
-        status[key] = {
-          exists: true,
-          age: age,
-          valid: age < CACHE_DURATION
-        };
-      } else {
-        status[key] = {
-          exists: false,
-          age: 0,
-          valid: false
-        };
-      }
+    const status: any = {};
+    cache.forEach((value, key) => {
+      status[key] = {
+        age: Date.now() - value.timestamp,
+        stale: Date.now() - value.timestamp > CACHE_DURATION
+      };
     });
-    
     return status;
   },
 
-  // Test function to verify price fetching (for debugging)
+  // Get performance statistics
+  getPerformanceStats: () => getPerformanceStats(),
+
+  // Test price fetching with performance tracking
   testPriceFetching: async () => {
-    console.log('Testing price fetching...');
-    
+    const startTime = Date.now();
     try {
-      console.log('Fetching ETH price...');
-      const ethPrice = await marketAPI.getETHPrice();
-      console.log('ETH Price:', ethPrice);
-      
-      console.log('Fetching BTC price...');
-      const btcPrice = await marketAPI.getBTCPrice();
-      console.log('BTC Price:', btcPrice);
-      
-      console.log('Fetching both prices...');
-      const bothPrices = await marketAPI.getCryptoPrices();
-      console.log('Both Prices:', bothPrices);
-      
-      console.log('Cache status:', marketAPI.getCacheStatus());
-      
-      return { success: true, ethPrice, btcPrice, bothPrices };
+      const result = await marketAPI.getCryptoPrices();
+      trackRequestTime('price_fetch_test', startTime);
+      return { success: true, data: result, duration: Date.now() - startTime };
     } catch (error) {
-      console.error('Price fetching test failed:', error);
-      return { success: false, error };
+      trackError('price_fetch_test');
+      return { success: false, error: (error as any)?.message, duration: Date.now() - startTime };
     }
   },
 
-  // Test function to verify PnL data generation (for debugging)
+  // Test PnL data generation with performance tracking
   testPnLDataGeneration: async () => {
-    console.log('Testing PnL data generation...');
-    
+    const startTime = Date.now();
     try {
-      console.log('Generating hourly PnL data...');
-      const pnlData = await marketAPI.generateHourlyPnLData();
-      console.log('Generated PnL data:', pnlData);
+      const result = await marketAPI.generateHourlyPnLData();
+      trackRequestTime('pnl_generation_test', startTime);
       
-      // Validate the data
-      if (pnlData.length > 0) {
-        console.log('PnL Data Validation:');
-        console.log('- Number of data points:', pnlData.length);
-        console.log('- Time range:', pnlData[0]?.hour, 'to', pnlData[pnlData.length - 1]?.hour);
-        console.log('- PnL range:', Math.min(...pnlData.map(p => p.pnl)), 'to', Math.max(...pnlData.map(p => p.pnl)));
-        
-        // Check for data quality issues
-        const hasNegativeValues = pnlData.some(p => p.pnl < 0);
-        const hasExtremeValues = pnlData.some(p => Math.abs(p.pnl) > 10000);
-        
-        console.log('- Has negative values:', hasNegativeValues);
-        console.log('- Has extreme values (>$10k):', hasExtremeValues);
-      }
+      // Validate that the data starts at 2 PM with $0
+      const validation = {
+        startsAt2PM: result.length > 0 && result[0].hour === '14:00',
+        startsAtZero: result.length > 0 && result[0].pnl === 0,
+        hasMultiplePoints: result.length >= 2,
+        timeRange: result.length > 0 ? `${result[0].hour} to ${result[result.length - 1].hour}` : 'No data',
+        pnlRange: result.length > 0 ? `${Math.min(...result.map(p => p.pnl))} to ${Math.max(...result.map(p => p.pnl))}` : 'No data'
+      };
       
-      return { success: true, pnlData };
+      return { 
+        success: true, 
+        data: result, 
+        duration: Date.now() - startTime,
+        validation
+      };
     } catch (error) {
-      console.error('PnL data generation test failed:', error);
-      return { success: false, error };
+      trackError('pnl_generation_test');
+      return { success: false, error: (error as any)?.message, duration: Date.now() - startTime };
     }
+  },
+
+  // Check if price data is stale
+  isPriceDataStale: () => {
+    return isDataStale('crypto_prices_batch', 30000); // 30 seconds for price data
   },
 
   // Get ETH historical price data for performance chart
@@ -877,42 +886,9 @@ export const marketAPI = {
       const totalCurrentPnl = cumulativeRealizedPnl + currentUnrealizedPnl;
       pnlTimeline.set(currentTimeString, Math.round(totalCurrentPnl));
       
-      // Fill in missing hours with interpolated data for smooth visualization
+      // Define time variables
       const currentHour = currentTime.getHours();
       const positionOpenHour = 14; // 2 PM
-      
-      for (let hour = positionOpenHour; hour <= currentHour; hour++) {
-        const hourString = hour.toString().padStart(2, '0') + ':00';
-        
-        if (!pnlTimeline.has(hourString)) {
-          // Find the closest known PnL values for interpolation
-          let prevPnl = 0;
-          let nextPnl = totalCurrentPnl;
-          
-          // Find previous known PnL
-          for (let h = hour - 1; h >= positionOpenHour; h--) {
-            const checkHour = h.toString().padStart(2, '0') + ':00';
-            if (pnlTimeline.has(checkHour)) {
-              prevPnl = pnlTimeline.get(checkHour)!;
-              break;
-            }
-          }
-          
-          // Find next known PnL
-          for (let h = hour + 1; h <= currentHour; h++) {
-            const checkHour = h.toString().padStart(2, '0') + ':00';
-            if (pnlTimeline.has(checkHour)) {
-              nextPnl = pnlTimeline.get(checkHour)!;
-              break;
-            }
-          }
-          
-          // Linear interpolation
-          const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
-          const interpolatedPnl = prevPnl + (nextPnl - prevPnl) * progressRatio;
-          pnlTimeline.set(hourString, Math.round(interpolatedPnl));
-        }
-      }
       
       // Convert to array and sort by time
       const dataPoints = Array.from(pnlTimeline.entries()).map(([hour, pnl]) => ({
@@ -924,59 +900,110 @@ export const marketAPI = {
         return (aHour * 60 + aMin) - (bHour * 60 + bMin);
       });
       
-      console.log('Generated PnL data points:', dataPoints);
+      // Ensure we always have 2 PM as the first point with $0 PnL
+      if (dataPoints.length === 0 || dataPoints[0].hour !== '14:00') {
+        dataPoints.unshift({ hour: '14:00', pnl: 0 });
+      } else {
+        // Ensure 2 PM has $0 PnL
+        dataPoints[0].pnl = 0;
+      }
+      
+      // Clean and validate data to ensure consistent hourly intervals
+      const cleanedDataPoints = dataPoints.filter((point: any) => {
+        const [, minute] = point.hour.split(':').map(Number);
+        // Only keep points that are on the hour (minute = 0)
+        return minute === 0;
+      });
+      
+      // Ensure we have all hourly intervals from 2 PM to current hour
+      const finalDataPoints = [];
+      for (let hour = positionOpenHour; hour <= currentHour; hour++) {
+        const hourString = hour.toString().padStart(2, '0') + ':00';
+        const existingPoint = cleanedDataPoints.find((p: any) => p.hour === hourString);
+        
+        if (existingPoint) {
+          finalDataPoints.push(existingPoint);
+        } else {
+          // Interpolate missing hour
+          const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
+          const interpolatedPnl = Math.round(totalCurrentPnl * progressRatio);
+          finalDataPoints.push({ hour: hourString, pnl: interpolatedPnl });
+        }
+      }
+      
+      console.log('Generated PnL data points:', finalDataPoints);
       
       // Ensure we have at least 3 data points for proper visualization
-      if (dataPoints.length < 3) {
+      if (finalDataPoints.length < 3) {
         // Add more granular data points if needed
         const additionalPoints = [];
-        for (let hour = positionOpenHour; hour <= currentHour; hour++) {
-          const hourString = hour.toString().padStart(2, '0') + ':00';
-          const existingPoint = dataPoints.find(p => p.hour === hourString);
+        for (let h = positionOpenHour; h <= currentHour; h++) {
+          const hourString = h.toString().padStart(2, '0') + ':00';
+          const existingPoint = finalDataPoints.find(p => p.hour === hourString);
           
           if (!existingPoint) {
-            const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
-            const interpolatedPnl = Math.round(totalCurrentPnl * progressRatio);
-            additionalPoints.push({ hour: hourString, pnl: interpolatedPnl });
+            // Ensure 2 PM starts with $0
+            if (h === positionOpenHour) {
+              additionalPoints.push({ hour: hourString, pnl: 0 });
+            } else {
+              const progressRatio = (h - positionOpenHour) / (currentHour - positionOpenHour);
+              const interpolatedPnl = Math.round(totalCurrentPnl * progressRatio);
+              additionalPoints.push({ hour: hourString, pnl: interpolatedPnl });
+            }
           }
         }
-        dataPoints.push(...additionalPoints);
-        dataPoints.sort((a, b) => {
+        finalDataPoints.push(...additionalPoints);
+        finalDataPoints.sort((a, b) => {
           const [aHour, aMin] = a.hour.split(':').map(Number);
           const [bHour, bMin] = b.hour.split(':').map(Number);
           return (aHour * 60 + aMin) - (bHour * 60 + bMin);
         });
+        
+        // Ensure 2 PM is still the first point with $0 PnL
+        if (finalDataPoints.length > 0 && finalDataPoints[0].hour !== '14:00') {
+          finalDataPoints.unshift({ hour: '14:00', pnl: 0 });
+        } else if (finalDataPoints.length > 0 && finalDataPoints[0].hour === '14:00') {
+          finalDataPoints[0].pnl = 0;
+        }
       }
       
       // Validate PnL data quality
-      if (dataPoints.length > 0) {
-        const maxPnl = Math.max(...dataPoints.map(p => p.pnl));
-        const minPnl = Math.min(...dataPoints.map(p => p.pnl));
-        const avgPnl = dataPoints.reduce((sum, p) => sum + p.pnl, 0) / dataPoints.length;
+      if (finalDataPoints.length > 0) {
+        const maxPnl = Math.max(...finalDataPoints.map(p => p.pnl));
+        const minPnl = Math.min(...finalDataPoints.map(p => p.pnl));
+        const avgPnl = finalDataPoints.reduce((sum, p) => sum + p.pnl, 0) / finalDataPoints.length;
         
         console.log('PnL Data Quality Check:');
         console.log('- Max PnL:', maxPnl);
         console.log('- Min PnL:', minPnl);
         console.log('- Avg PnL:', avgPnl);
-        console.log('- Data points:', dataPoints.length);
+        console.log('- Data points:', finalDataPoints.length);
+        console.log('- First point (2 PM):', finalDataPoints[0]);
+        console.log('- Last point:', finalDataPoints[finalDataPoints.length - 1]);
         
         // Ensure PnL progression is reasonable
-        if (dataPoints.length >= 2) {
-          const firstPnl = dataPoints[0].pnl;
-          const lastPnl = dataPoints[dataPoints.length - 1].pnl;
+        if (finalDataPoints.length >= 2) {
+          const firstPnl = finalDataPoints[0].pnl;
+          const lastPnl = finalDataPoints[finalDataPoints.length - 1].pnl;
           const progression = lastPnl - firstPnl;
           console.log('- PnL progression:', progression);
+          
+          // Ensure 2 PM starts with $0
+          if (finalDataPoints[0].hour === '14:00' && finalDataPoints[0].pnl !== 0) {
+            console.warn('2 PM should start with $0 PnL, fixing...');
+            finalDataPoints[0].pnl = 0;
+          }
           
           // If progression seems unrealistic, adjust the data
           if (Math.abs(progression - currentUnrealizedPnl) > Math.abs(currentUnrealizedPnl) * 0.5) {
             console.warn('PnL progression seems unrealistic, adjusting data...');
             // Adjust the last point to match current unrealized PnL
-            dataPoints[dataPoints.length - 1].pnl = Math.round(currentUnrealizedPnl);
+            finalDataPoints[finalDataPoints.length - 1].pnl = Math.round(currentUnrealizedPnl);
           }
         }
       }
       
-      return dataPoints;
+      return finalDataPoints;
     } catch (error) {
       console.error('Error fetching PnL data from Hyperliquid:', error);
       
@@ -1002,6 +1029,15 @@ export const marketAPI = {
         const hourTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0);
         const hourString = hourTime.getHours().toString().padStart(2, '0') + ':00';
         
+        // Ensure 2 PM starts with $0 PnL
+        if (hour === positionOpenHour) {
+          fallbackData.push({
+            hour: hourString,
+            pnl: 0
+          });
+          continue;
+        }
+        
         // Create realistic PnL progression with some volatility
         const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
         const volatility = 0.15; // 15% volatility for more realistic progression
@@ -1014,7 +1050,14 @@ export const marketAPI = {
         });
       }
       
-      return fallbackData;
+      // Ensure we have consistent hourly intervals
+      const sortedFallbackData = fallbackData.sort((a, b) => {
+        const [aHour, aMin] = a.hour.split(':').map(Number);
+        const [bHour, bMin] = b.hour.split(':').map(Number);
+        return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+      });
+      
+      return sortedFallbackData;
     }
   },
 };

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { marketAPI } from '../services/api';
+import LoadingSpinner from './LoadingSpinner';
 import './PerformanceChart.css';
+import { marketAPI } from '../services/api';
 
 interface HourlyPnLData {
   hour: string;
@@ -71,11 +72,16 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
   };
 
   const formatXAxis = (value: string) => {
-    // Format time display (e.g., "14:30" -> "2:30 PM")
+    // Parse the time value (e.g., "14:00", "15:30")
     const [hour, minute] = value.split(':').map(Number);
+    
+    // Convert to 12-hour format with consistent formatting
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    const displayMinute = minute.toString().padStart(2, '0');
+    
+    // Return formatted time (e.g., "2:00 PM", "3:30 PM")
+    return `${displayHour}:${displayMinute} ${ampm}`;
   };
 
   if (loading) {
@@ -85,7 +91,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
           <h3>Total PnL</h3>
         </div>
         <div className="chart-container">
-          <div className="loading">Loading PnL data...</div>
+          <LoadingSpinner />
         </div>
       </div>
     );
@@ -98,7 +104,10 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
           <h3>Total PnL</h3>
         </div>
         <div className="chart-container">
-          <div className="error">{error}</div>
+          <div className="error-message">
+            <div className="error-icon">⚠️</div>
+            <div className="error-text">{error}</div>
+          </div>
         </div>
       </div>
     );

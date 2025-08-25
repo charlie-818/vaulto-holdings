@@ -6,6 +6,7 @@ import Header from './Header';
 import MetricCard from './MetricCard';
 import PerformanceChart from './PerformanceChart';
 import Footer from './Footer';
+import LoadingSpinner from './LoadingSpinner';
 import './Dashboard.css';
 
 interface Position {
@@ -29,25 +30,38 @@ const Dashboard: React.FC = () => {
   const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch real vault data from Hyperliquid
   const fetchVaultData = async () => {
     try {
+      setLoadingStage('fetching-vault');
+      setLoadingProgress(20);
+      
       // Fetch vault state first
       const vaultState = await hyperliquidAPI.getVaultState();
+      setLoadingProgress(40);
+      
+      setLoadingStage('fetching-prices');
+      setLoadingProgress(60);
       
       // Try to fetch crypto prices with robust fallback system
       let cryptoPrices: { eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } } | null = null;
       try {
         cryptoPrices = await marketAPI.getCryptoPrices();
         console.log('Fetched crypto prices successfully:', cryptoPrices);
+        setLoadingProgress(80);
       } catch (priceError) {
         console.error('Failed to fetch crypto prices:', priceError);
         // Don't set price data if fetch fails - let UI show error state
         setEthPriceData(null);
         setBtcPriceData(null);
       }
+      
+      setLoadingStage('calculating');
+      setLoadingProgress(90);
       
       // Use ETH price from vault state if crypto prices failed
       const ethPrice = cryptoPrices?.eth.current || 2450; // Fallback for calculations only
@@ -64,19 +78,19 @@ const Dashboard: React.FC = () => {
         setBtcPriceData(cryptoPrices.btc);
       }
       
-              // Extract positions from vault state with accurate current prices
-        const positionData = vaultState.assetPositions.map((pos: any) => ({
-          coin: pos.position.coin,
-          size: parseFloat(pos.position.szi),
-          entryPrice: parseFloat(pos.position.entryPx),
-          currentPrice: pos.position.coin === 'ETH' ? (cryptoPrices?.eth.current || 2450) : 
-                       pos.position.coin === 'BTC' ? (cryptoPrices?.btc.current || 112000) : 0,
-          unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
-          leverage: pos.position.leverage.value,
-          liquidationPrice: parseFloat(pos.position.liquidationPx),
-          marginUsed: parseFloat(pos.position.marginUsed),
-          returnOnEquity: parseFloat(pos.position.returnOnEquity)
-        }));
+      // Extract positions from vault state with accurate current prices
+      const positionData = vaultState.assetPositions.map((pos: any) => ({
+        coin: pos.position.coin,
+        size: parseFloat(pos.position.szi),
+        entryPrice: parseFloat(pos.position.entryPx),
+        currentPrice: pos.position.coin === 'ETH' ? (cryptoPrices?.eth.current || 2450) : 
+                     pos.position.coin === 'BTC' ? (cryptoPrices?.btc.current || 112000) : 0,
+        unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
+        leverage: pos.position.leverage.value,
+        liquidationPrice: parseFloat(pos.position.liquidationPx),
+        marginUsed: parseFloat(pos.position.marginUsed),
+        returnOnEquity: parseFloat(pos.position.returnOnEquity)
+      }));
       
       setPositions(positionData);
       
@@ -99,6 +113,8 @@ const Dashboard: React.FC = () => {
         }
       ]);
       
+      setLoadingStage('complete');
+      setLoadingProgress(100);
       setError(null);
     } catch (error) {
       console.error('Error fetching vault data:', error);
@@ -113,7 +129,17 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const initializeData = async () => {
       setLoading(true);
+      setLoadingStage('initializing');
+      setLoadingProgress(0);
+      
+      // Simulate a brief initialization delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setLoadingProgress(10);
+      
       await fetchVaultData();
+      
+      // Brief delay before hiding loading to show completion
+      await new Promise(resolve => setTimeout(resolve, 200));
       setLoading(false);
     };
 
@@ -178,14 +204,34 @@ const Dashboard: React.FC = () => {
   }, []);
 
   if (loading) {
+    const getLoadingMessage = () => {
+      switch (loadingStage) {
+        case 'initializing':
+          return 'Initializing dashboard';
+        case 'fetching-vault':
+          return 'Fetching vault data';
+        case 'fetching-prices':
+          return 'Fetching market prices';
+        case 'calculating':
+          return 'Calculating metrics';
+        case 'complete':
+          return 'Loading complete';
+        default:
+          return 'Loading real-time vault data';
+      }
+    };
+
     return (
       <div className="dashboard">
         <Header />
         <main className="main-content">
           <div className="container">
-            <div className="loading-container">
-              <div className="loading">Loading real-time vault data...</div>
-            </div>
+            <LoadingSpinner 
+              message={getLoadingMessage()}
+              showProgress={true}
+              progress={loadingProgress}
+              size="large"
+            />
           </div>
         </main>
       </div>
@@ -285,7 +331,7 @@ const Dashboard: React.FC = () => {
                   percent: vaultMetrics.ethNetExposure.dailyChangePercent,
                   period: '24h'
                 }}
-                tooltip="Current leveraged exposure to Ethereum, including all positions and derivatives"
+                tooltip="The total leveraged exposure to Ethereum across all positions. This represents the net directional bet on ETH price movements, combining long and short positions. A value of 2.15x means the vault has 2.15 times the vault's capital exposed to ETH price movements."
               />
               
               <MetricCard
@@ -293,21 +339,21 @@ const Dashboard: React.FC = () => {
                 value={`$${vaultMetrics.liquidationPrice.value.toFixed(2)}`}
                 subtitle={`${((vaultMetrics.liquidationPrice.distance / vaultMetrics.liquidationPrice.currentEthPrice) * 100).toFixed(2)}% from current price`}
                 isDanger={vaultMetrics.liquidationPrice.isDangerZone}
-                tooltip="Price at which positions would be liquidated. Red indicates proximity to current ETH price."
+                tooltip="The ETH price at which the vault's leveraged positions would be automatically liquidated by the exchange. This is calculated based on the vault's current margin and leverage. When ETH price approaches this level, the card turns red to indicate increased risk. The percentage shows how close the current price is to liquidation."
               />
               
               <MetricCard
                 title="Vault NAV"
                 value={`$${vaultMetrics.vaultNav.usd.toFixed(2)}`}
                 subtitle={`${vaultMetrics.vaultNav.eth.toFixed(2)} ETH`}
-                tooltip="Net Asset Value of the vault in USD and ETH"
+                tooltip="Net Asset Value (NAV) represents the total value of the vault's assets minus liabilities. This is the fundamental measure of the vault's worth, calculated by summing all positions, cash, and other assets, then subtracting any outstanding debts or obligations. The NAV is displayed in both USD and ETH equivalent."
               />
               
               <MetricCard
                 title="Total Vault Value"
                 value={`$${vaultMetrics.totalVaultValue.usd.toFixed(2)}`}
                 subtitle={`${vaultMetrics.totalVaultValue.eth.toFixed(2)} ETH`}
-                tooltip="Total value of all assets under management"
+                tooltip="Total Vault Value represents the gross value of all assets under management, including leveraged positions and derivatives. Unlike NAV, this includes the full notional value of leveraged positions. For example, if the vault has $10,000 in capital with 2x leverage on ETH, the total vault value would be $20,000, while NAV would be $10,000 plus any unrealized gains or losses."
               />
             </div>
           </section>

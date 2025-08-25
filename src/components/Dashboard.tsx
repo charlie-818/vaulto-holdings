@@ -4,7 +4,7 @@ import { mockVaultMetrics, mockPerformanceMetrics, mockDataSources } from '../da
 import { marketAPI, hyperliquidAPI } from '../services/api';
 import Header from './Header';
 import MetricCard from './MetricCard';
-import PerformanceChart from './PerformanceChart';
+import ETHPriceChart from './ETHPriceChart';
 import Footer from './Footer';
 import LoadingSpinner from './LoadingSpinner';
 import './Dashboard.css';
@@ -155,13 +155,7 @@ const Dashboard: React.FC = () => {
       return result;
     };
     
-    (window as any).debugVaultoPnL = async () => {
-      console.log('=== Vaulto PnL Debug ===');
-      console.log('Testing PnL data generation...');
-      const result = await marketAPI.testPnLDataGeneration();
-      console.log('Test result:', result);
-      return result;
-    };
+
   }, []);
 
   // Real-time data updates
@@ -424,8 +418,9 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               
-              <div className="performance-chart-wrapper">
-                <PerformanceChart />
+              {/* ETH Price Chart - Inline with performance metrics */}
+              <div className="chart-wrapper">
+                <ETHPriceChart />
               </div>
             </div>
           </section>

@@ -462,7 +462,7 @@
 
 .performance-grid {
   display: grid;
-  grid-template-columns: 1fr 2.5fr;
+  grid-template-columns: 1fr 2fr;
   gap: 2rem;
   align-items: start;
 }
@@ -487,6 +487,23 @@
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   min-height: 340px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Charts Section */
+.charts-section {
+  margin-top: 2rem;
+}
+
+.chart-wrapper {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  min-height: 300px;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -692,6 +709,13 @@
   }
   
   .performance-chart-wrapper {
+    padding: 1rem;
+    min-height: 350px;
+  }
+  
+
+  
+  .chart-wrapper {
     padding: 1rem;
     min-height: 350px;
   }

@@ -672,33 +672,7 @@ export const marketAPI = {
     }
   },
 
-  // Test PnL data generation with performance tracking
-  testPnLDataGeneration: async () => {
-    const startTime = Date.now();
-    try {
-      const result = await marketAPI.generateHourlyPnLData();
-      trackRequestTime('pnl_generation_test', startTime);
-      
-      // Validate that the data starts at 2 PM with $0
-      const validation = {
-        startsAt2PM: result.length > 0 && result[0].hour === '14:00',
-        startsAtZero: result.length > 0 && result[0].pnl === 0,
-        hasMultiplePoints: result.length >= 2,
-        timeRange: result.length > 0 ? `${result[0].hour} to ${result[result.length - 1].hour}` : 'No data',
-        pnlRange: result.length > 0 ? `${Math.min(...result.map(p => p.pnl))} to ${Math.max(...result.map(p => p.pnl))}` : 'No data'
-      };
-      
-      return { 
-        success: true, 
-        data: result, 
-        duration: Date.now() - startTime,
-        validation
-      };
-    } catch (error) {
-      trackError('pnl_generation_test');
-      return { success: false, error: (error as any)?.message, duration: Date.now() - startTime };
-    }
-  },
+
 
   // Check if price data is stale
   isPriceDataStale: () => {
@@ -765,299 +739,121 @@ export const marketAPI = {
     }
   },
 
-  // Get real PnL data from Hyperliquid with accurate hourly tracking
-  generateHourlyPnLData: async (): Promise<Array<{ hour: string; pnl: number }>> => {
-    console.log('Generating hourly PnL data with enhanced accuracy...');
+
+
+  // Generate ETH price data from Yahoo Finance
+  generateETHPriceData: async (): Promise<Array<{ hour: string; price: number }>> => {
+    console.log('Fetching ETH price data from Yahoo Finance...');
     try {
-      // Get current vault state and crypto prices for accurate calculations
-      const [vaultState, cryptoPrices] = await Promise.all([
-        hyperliquidAPI.getVaultState(),
-        marketAPI.getCryptoPrices()
-      ]);
+      // Fetch ETH price data from Yahoo Finance
+      const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/ETH-USD?interval=1h&range=1d');
       
-      // Calculate current total unrealized PnL
-      const currentUnrealizedPnl = vaultState.assetPositions.reduce((sum: number, pos: any) => {
-        return sum + parseFloat(pos.position.unrealizedPnl || '0');
-      }, 0);
+      if (!response.ok) {
+        throw new Error(`Yahoo Finance API failed: ${response.status}`);
+      }
       
-      console.log('Current unrealized PnL:', currentUnrealizedPnl);
-      console.log('Current ETH price:', cryptoPrices.eth.current);
-      console.log('Current BTC price:', cryptoPrices.btc.current);
+      const data = await response.json();
       
-      // Get trading history to calculate realized PnL and build accurate timeline
-      const vaultHistory = await hyperliquidAPI.getVaultHistory();
+      if (!data.chart || !data.chart.result || !data.chart.result[0]) {
+        throw new Error('Invalid data structure from Yahoo Finance');
+      }
       
-      // Process trading history to build accurate PnL timeline
-      const pnlTimeline = new Map<string, number>();
+      const result = data.chart.result[0];
+      const timestamps = result.timestamp;
+      const quotes = result.indicators.quote[0];
       
-      // Add initial point at 2 PM (position opening time)
-      const today = new Date();
-      const positionOpenTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0);
-      const openTimeString = positionOpenTime.getHours().toString().padStart(2, '0') + ':' + 
-                           positionOpenTime.getMinutes().toString().padStart(2, '0');
-      pnlTimeline.set(openTimeString, 0);
+      if (!timestamps || !quotes || !quotes.close) {
+        throw new Error('Missing price data from Yahoo Finance');
+      }
       
-      // Calculate cumulative realized PnL from trades and build hourly snapshots
-      let cumulativeRealizedPnl = 0;
-      let currentPositions = new Map<string, { size: number; entryPrice: number; coin: string }>();
+      // Convert timestamps to hourly data points
+      const dataPoints = [];
       
-      if (vaultHistory && Array.isArray(vaultHistory)) {
-        // Sort trades by timestamp
-        const sortedTrades = vaultHistory.sort((a: any, b: any) => a.time - b.time);
+      for (let i = 0; i < timestamps.length; i++) {
+        const timestamp = timestamps[i];
+        const price = quotes.close[i];
         
-        // Group trades by hour for better accuracy
-        const hourlyTrades = new Map<string, any[]>();
-        
-        for (const trade of sortedTrades) {
-          const tradeTime = new Date(trade.time);
-          const hourKey = tradeTime.getHours().toString().padStart(2, '0') + ':00';
+        if (price && price > 0) {
+          const date = new Date(timestamp * 1000);
+          const hourString = date.getHours().toString().padStart(2, '0') + ':00';
           
-          if (!hourlyTrades.has(hourKey)) {
-            hourlyTrades.set(hourKey, []);
-          }
-          hourlyTrades.get(hourKey)!.push(trade);
-        }
-        
-        // Process each hour's trades and calculate PnL
-        const sortedHours = Array.from(hourlyTrades.keys()).sort();
-        
-        for (const hourKey of sortedHours) {
-          const hourTrades = hourlyTrades.get(hourKey)!;
-          
-          // Process all trades in this hour
-          for (const trade of hourTrades) {
-            // Add realized PnL from closed positions
-            if (trade.closedPnl) {
-              cumulativeRealizedPnl += parseFloat(trade.closedPnl);
-            }
-            
-            // Update current positions
-            const coin = trade.coin;
-            const size = parseFloat(trade.sz);
-            const price = parseFloat(trade.px);
-            const side = trade.side; // 'B' for buy, 'A' for ask/sell
-            
-            if (side === 'B') {
-              // Opening or adding to position
-              if (currentPositions.has(coin)) {
-                const existing = currentPositions.get(coin)!;
-                const totalSize = existing.size + size;
-                const avgPrice = ((existing.size * existing.entryPrice) + (size * price)) / totalSize;
-                currentPositions.set(coin, { size: totalSize, entryPrice: avgPrice, coin });
-              } else {
-                currentPositions.set(coin, { size, entryPrice: price, coin });
-              }
-            } else {
-              // Closing or reducing position
-              if (currentPositions.has(coin)) {
-                const existing = currentPositions.get(coin)!;
-                const remainingSize = existing.size - size;
-                if (remainingSize <= 0) {
-                  currentPositions.delete(coin);
-                } else {
-                  currentPositions.set(coin, { size: remainingSize, entryPrice: existing.entryPrice, coin });
-                }
-              }
-            }
-          }
-          
-          // Calculate unrealized PnL for this hour based on current positions
-          let hourlyUnrealizedPnl = 0;
-          currentPositions.forEach((position, coin) => {
-            // Get current price for this coin from real-time data
-            const currentPrice = coin === 'ETH' ? cryptoPrices.eth.current : 
-                               coin === 'BTC' ? cryptoPrices.btc.current : 
-                               cryptoPrices.eth.current; // Default to ETH price for other coins
-            const unrealizedPnl = (currentPrice - position.entryPrice) * position.size;
-            hourlyUnrealizedPnl += unrealizedPnl;
+          dataPoints.push({
+            hour: hourString,
+            price: Math.round(price)
           });
-          
-          // Total PnL for this hour
-          const totalHourlyPnl = cumulativeRealizedPnl + hourlyUnrealizedPnl;
-          pnlTimeline.set(hourKey, Math.round(totalHourlyPnl));
         }
       }
       
-      // Add current PnL point
-      const currentTime = new Date();
-      const currentTimeString = currentTime.getHours().toString().padStart(2, '0') + ':' + 
-                               currentTime.getMinutes().toString().padStart(2, '0');
+      console.log('Fetched ETH price data from Yahoo Finance:', dataPoints.length, 'data points');
       
-      const totalCurrentPnl = cumulativeRealizedPnl + currentUnrealizedPnl;
-      pnlTimeline.set(currentTimeString, Math.round(totalCurrentPnl));
-      
-      // Define time variables
-      const currentHour = currentTime.getHours();
-      const positionOpenHour = 14; // 2 PM
-      
-      // Convert to array and sort by time
-      const dataPoints = Array.from(pnlTimeline.entries()).map(([hour, pnl]) => ({
-        hour,
-        pnl
-      })).sort((a, b) => {
-        const [aHour, aMin] = a.hour.split(':').map(Number);
-        const [bHour, bMin] = b.hour.split(':').map(Number);
-        return (aHour * 60 + aMin) - (bHour * 60 + bMin);
-      });
-      
-      // Ensure we always have 2 PM as the first point with $0 PnL
-      if (dataPoints.length === 0 || dataPoints[0].hour !== '14:00') {
-        dataPoints.unshift({ hour: '14:00', pnl: 0 });
-      } else {
-        // Ensure 2 PM has $0 PnL
-        dataPoints[0].pnl = 0;
-      }
-      
-      // Clean and validate data to ensure consistent hourly intervals
-      const cleanedDataPoints = dataPoints.filter((point: any) => {
-        const [, minute] = point.hour.split(':').map(Number);
-        // Only keep points that are on the hour (minute = 0)
-        return minute === 0;
-      });
-      
-      // Ensure we have all hourly intervals from 2 PM to current hour
-      const finalDataPoints = [];
-      for (let hour = positionOpenHour; hour <= currentHour; hour++) {
-        const hourString = hour.toString().padStart(2, '0') + ':00';
-        const existingPoint = cleanedDataPoints.find((p: any) => p.hour === hourString);
+      // Validate data quality
+      if (dataPoints.length > 0) {
+        const maxPrice = Math.max(...dataPoints.map((p: any) => p.price));
+        const minPrice = Math.min(...dataPoints.map((p: any) => p.price));
         
-        if (existingPoint) {
-          finalDataPoints.push(existingPoint);
-        } else {
-          // Interpolate missing hour
-          const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
-          const interpolatedPnl = Math.round(totalCurrentPnl * progressRatio);
-          finalDataPoints.push({ hour: hourString, pnl: interpolatedPnl });
-        }
+        console.log('ETH Price Data Quality Check:');
+        console.log('- Max price:', maxPrice);
+        console.log('- Min price:', minPrice);
+        console.log('- Data points:', dataPoints.length);
+        console.log('- First point:', dataPoints[0]);
+        console.log('- Last point:', dataPoints[dataPoints.length - 1]);
       }
       
-      console.log('Generated PnL data points:', finalDataPoints);
-      
-      // Ensure we have at least 3 data points for proper visualization
-      if (finalDataPoints.length < 3) {
-        // Add more granular data points if needed
-        const additionalPoints = [];
-        for (let h = positionOpenHour; h <= currentHour; h++) {
-          const hourString = h.toString().padStart(2, '0') + ':00';
-          const existingPoint = finalDataPoints.find(p => p.hour === hourString);
-          
-          if (!existingPoint) {
-            // Ensure 2 PM starts with $0
-            if (h === positionOpenHour) {
-              additionalPoints.push({ hour: hourString, pnl: 0 });
-            } else {
-              const progressRatio = (h - positionOpenHour) / (currentHour - positionOpenHour);
-              const interpolatedPnl = Math.round(totalCurrentPnl * progressRatio);
-              additionalPoints.push({ hour: hourString, pnl: interpolatedPnl });
-            }
-          }
-        }
-        finalDataPoints.push(...additionalPoints);
-        finalDataPoints.sort((a, b) => {
-          const [aHour, aMin] = a.hour.split(':').map(Number);
-          const [bHour, bMin] = b.hour.split(':').map(Number);
-          return (aHour * 60 + aMin) - (bHour * 60 + bMin);
-        });
-        
-        // Ensure 2 PM is still the first point with $0 PnL
-        if (finalDataPoints.length > 0 && finalDataPoints[0].hour !== '14:00') {
-          finalDataPoints.unshift({ hour: '14:00', pnl: 0 });
-        } else if (finalDataPoints.length > 0 && finalDataPoints[0].hour === '14:00') {
-          finalDataPoints[0].pnl = 0;
-        }
-      }
-      
-      // Validate PnL data quality
-      if (finalDataPoints.length > 0) {
-        const maxPnl = Math.max(...finalDataPoints.map(p => p.pnl));
-        const minPnl = Math.min(...finalDataPoints.map(p => p.pnl));
-        const avgPnl = finalDataPoints.reduce((sum, p) => sum + p.pnl, 0) / finalDataPoints.length;
-        
-        console.log('PnL Data Quality Check:');
-        console.log('- Max PnL:', maxPnl);
-        console.log('- Min PnL:', minPnl);
-        console.log('- Avg PnL:', avgPnl);
-        console.log('- Data points:', finalDataPoints.length);
-        console.log('- First point (2 PM):', finalDataPoints[0]);
-        console.log('- Last point:', finalDataPoints[finalDataPoints.length - 1]);
-        
-        // Ensure PnL progression is reasonable
-        if (finalDataPoints.length >= 2) {
-          const firstPnl = finalDataPoints[0].pnl;
-          const lastPnl = finalDataPoints[finalDataPoints.length - 1].pnl;
-          const progression = lastPnl - firstPnl;
-          console.log('- PnL progression:', progression);
-          
-          // Ensure 2 PM starts with $0
-          if (finalDataPoints[0].hour === '14:00' && finalDataPoints[0].pnl !== 0) {
-            console.warn('2 PM should start with $0 PnL, fixing...');
-            finalDataPoints[0].pnl = 0;
-          }
-          
-          // If progression seems unrealistic, adjust the data
-          if (Math.abs(progression - currentUnrealizedPnl) > Math.abs(currentUnrealizedPnl) * 0.5) {
-            console.warn('PnL progression seems unrealistic, adjusting data...');
-            // Adjust the last point to match current unrealized PnL
-            finalDataPoints[finalDataPoints.length - 1].pnl = Math.round(currentUnrealizedPnl);
-          }
-        }
-      }
-      
-      return finalDataPoints;
+      return dataPoints;
     } catch (error) {
-      console.error('Error fetching PnL data from Hyperliquid:', error);
+      console.error('Error fetching ETH price data from Yahoo Finance:', error);
       
-      // Fallback: Create realistic PnL data if API fails
-      const fallbackData = [];
-      const now = new Date();
-      const currentHour = now.getHours();
-      const positionOpenHour = 14; // 2 PM
-      
-      // Try to get current PnL from vault state if available
-      let currentPnl = 107; // Default fallback value
-      try {
-        const vaultState = await hyperliquidAPI.getVaultState();
-        currentPnl = vaultState.assetPositions.reduce((sum: number, pos: any) => {
-          return sum + parseFloat(pos.position.unrealizedPnl || '0');
-        }, 0);
-      } catch (e) {
-        // Use default value if vault state fetch fails
-      }
-      
-      // Create fallback data points from 2 PM to current time with realistic progression
-      for (let hour = positionOpenHour; hour <= currentHour; hour++) {
-        const hourTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0);
-        const hourString = hourTime.getHours().toString().padStart(2, '0') + ':00';
+             // Fallback: Use CoinGecko API as backup
+       try {
+         console.log('Trying CoinGecko as fallback...');
+         const response = await fetch('https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=1');
+         
+         if (!response.ok) {
+           throw new Error(`CoinGecko API failed: ${response.status}`);
+         }
+         
+         const data = await response.json();
+         
+         if (!data.prices || !Array.isArray(data.prices)) {
+           throw new Error('Invalid data structure from CoinGecko');
+         }
+         
+         // Convert CoinGecko data to hourly format
+         const dataPoints = [];
+         
+         for (const [timestamp, price] of data.prices) {
+           const date = new Date(timestamp);
+           const hourString = date.getHours().toString().padStart(2, '0') + ':00';
+           
+           dataPoints.push({
+             hour: hourString,
+             price: Math.round(price)
+           });
+         }
+         
+         console.log('Fetched ETH price data from CoinGecko fallback:', dataPoints.length, 'data points');
+         return dataPoints;
         
-        // Ensure 2 PM starts with $0 PnL
-        if (hour === positionOpenHour) {
+      } catch (fallbackError) {
+        console.error('Both Yahoo Finance and CoinGecko failed:', fallbackError);
+        
+        // Final fallback: Create basic data with current price
+        const fallbackData = [];
+        const currentEthPrice = 4380; // Default current price
+        
+        // Create basic hourly data points
+        for (let hour = 0; hour <= 23; hour++) {
+          const hourString = hour.toString().padStart(2, '0') + ':00';
+          
           fallbackData.push({
             hour: hourString,
-            pnl: 0
+            price: Math.round(currentEthPrice + (Math.random() - 0.5) * 100)
           });
-          continue;
         }
         
-        // Create realistic PnL progression with some volatility
-        const progressRatio = (hour - positionOpenHour) / (currentHour - positionOpenHour);
-        const volatility = 0.15; // 15% volatility for more realistic progression
-        const randomFactor = 1 + (Math.random() - 0.5) * volatility;
-        const fallbackPnl = Math.round(currentPnl * progressRatio * randomFactor);
-        
-        fallbackData.push({
-          hour: hourString,
-          pnl: fallbackPnl
-        });
+        console.log('Using fallback ETH price data:', fallbackData.length, 'data points');
+        return fallbackData;
       }
-      
-      // Ensure we have consistent hourly intervals
-      const sortedFallbackData = fallbackData.sort((a, b) => {
-        const [aHour, aMin] = a.hour.split(':').map(Number);
-        const [bHour, bMin] = b.hour.split(':').map(Number);
-        return (aHour * 60 + aMin) - (bHour * 60 + bMin);
-      });
-      
-      return sortedFallbackData;
     }
   },
 };

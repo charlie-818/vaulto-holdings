@@ -21,8 +21,6 @@
   padding: 2rem;
   width: 100%;
   max-width: 600px;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
   margin-top: 2rem;
 }
 

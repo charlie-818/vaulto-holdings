@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingSpinner from './LoadingSpinner';
 import './PerformanceChart.css';
@@ -18,8 +18,21 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const fetchHourlyPnLData = useCallback(async (forceRefresh: boolean = false) => {
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const fetchHourlyPnLData = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
       
@@ -44,7 +57,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     } finally {
       setLoading(false);
     }
-  }, [propData]);
+  };
 
   useEffect(() => {
     if (propData) {
@@ -58,7 +71,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     const interval = setInterval(() => fetchHourlyPnLData(false), 60000); // Refresh every minute
 
     return () => clearInterval(interval);
-  }, [propData, fetchHourlyPnLData]);
+  }, [propData]);
 
   const formatTooltip = (value: any, name: string) => {
     if (name === 'pnl') {
@@ -82,6 +95,24 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     
     // Return formatted time (e.g., "2:00 PM", "3:30 PM")
     return `${displayHour}:${displayMinute} ${ampm}`;
+  };
+
+  // Responsive chart margins
+  const getChartMargins = () => {
+    if (isMobile) {
+      return { top: 10, right: 15, left: 15, bottom: 10 };
+    }
+    return { top: 10, right: 20, left: 20, bottom: 10 };
+  };
+
+  // Responsive font sizes
+  const getFontSize = () => {
+    return isMobile ? 10 : 11;
+  };
+
+  // Responsive stroke width
+  const getStrokeWidth = () => {
+    return isMobile ? 2 : 2.5;
   };
 
   if (loading) {
@@ -137,43 +168,46 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
       </div>
       <div className="chart-container">
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data} margin={{ top: 10, right: 40, left: 40, bottom: 15 }}>
+          <LineChart data={data} margin={getChartMargins()}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
               dataKey="hour" 
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={getFontSize()}
               tickLine={false}
               axisLine={false}
               tickFormatter={formatXAxis}
-              tickMargin={10}
+              tickMargin={isMobile ? 6 : 8}
+              interval="preserveStartEnd"
             />
             <YAxis 
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={getFontSize()}
               tickLine={false}
               axisLine={false}
               tickFormatter={formatYAxis}
-              tickMargin={10}
+              tickMargin={isMobile ? 6 : 8}
+              width={isMobile ? 50 : 60}
             />
             <Tooltip 
               formatter={formatTooltip}
               labelFormatter={(label) => `Time: ${formatXAxis(label)}`}
-              labelStyle={{ color: '#1a1a1a' }}
+              labelStyle={{ color: '#1a1a1a', fontSize: isMobile ? '11px' : '12px' }}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                fontSize: isMobile ? '11px' : '12px'
               }}
             />
             <Line 
               type="monotone" 
               dataKey="pnl" 
               stroke="#10b981" 
-              strokeWidth={3}
+              strokeWidth={getStrokeWidth()}
               dot={false}
-              activeDot={{ r: 6, fill: "#10b981" }}
+              activeDot={{ r: isMobile ? 4 : 5, fill: "#10b981", stroke: "#ffffff", strokeWidth: 2 }}
               connectNulls={true}
             />
           </LineChart>

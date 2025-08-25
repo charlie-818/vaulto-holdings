@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingSpinner from './LoadingSpinner';
 import './PerformanceChart.css';
@@ -32,7 +32,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const fetchHourlyPnLData = async (forceRefresh: boolean = false) => {
+  const fetchHourlyPnLData = useCallback(async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
       
@@ -57,7 +57,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     } finally {
       setLoading(false);
     }
-  };
+  }, [propData]);
 
   useEffect(() => {
     if (propData) {
@@ -71,7 +71,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     const interval = setInterval(() => fetchHourlyPnLData(false), 60000); // Refresh every minute
 
     return () => clearInterval(interval);
-  }, [propData]);
+  }, [propData, fetchHourlyPnLData]);
 
   const formatTooltip = (value: any, name: string) => {
     if (name === 'pnl') {

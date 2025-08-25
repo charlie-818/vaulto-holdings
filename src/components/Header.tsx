@@ -2,7 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './Header.css';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  // Removed onRefresh, lastUpdated, and loading props
+}
+
+const Header: React.FC<HeaderProps> = () => {
+
   return (
     <header className="header">
       <div className="container">
@@ -11,6 +16,8 @@ const Header: React.FC = () => {
             <img src="/vlt-logo.png" alt="Vaulto Logo" className="logo-image" />
             <h1>Holdings</h1>
           </Link>
+          
+
           
           <nav className="nav">
             <ul className="nav-list">

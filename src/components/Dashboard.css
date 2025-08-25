@@ -11,6 +11,121 @@
   padding-right: 1rem;
 }
 
+/* Error Banner */
+.error-banner {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Positions Section */
+.positions-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.positions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.position-card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.position-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.position-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.position-asset {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.position-pnl {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.position-pnl.positive {
+  color: var(--success-color);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.position-pnl.negative {
+  color: var(--danger-color);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.position-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.position-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.position-row .label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.position-row .value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.position-row .value.positive {
+  color: var(--success-color);
+}
+
+.position-row .value.negative {
+  color: var(--danger-color);
+}
+
 .hero-section {
   background-color: var(--background-color);
   padding: 3rem 1rem;
@@ -20,17 +135,119 @@
 
 .hero-content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
+  flex-direction: row;
+  align-items: stretch; /* Changed from center to stretch to make all boxes same height */
+  justify-content: space-between;
+  gap: 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: stretch;
+  }
+  
+  .hero-prices {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-right: 0;
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .hero-price {
+    height: 160px; /* Smaller height on mobile */
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .eth-price-box {
+    min-width: auto; /* Reset min-width on mobile */
+  }
+  
+  .vault-info {
+    min-width: auto;
+    width: 100%;
+    height: 180px; /* Increased height on mobile to accommodate link */
+  }
+  
+  .vault-link-button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .vault-link-button svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .vault-address {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .address-text {
+    font-size: 0.8rem;
+    word-break: break-all;
+  }
+  
+  .price-value {
+    font-size: 2.2rem; /* Smaller font on mobile */
+  }
+  
+  .price-change {
+    font-size: 1rem; /* Smaller font on mobile */
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+.hero-prices {
+  display: flex;
+  gap: 4rem;
+  align-items: stretch; /* Changed from center to stretch */
+  flex: 1;
+  justify-content: flex-start;
+  padding-right: 2rem;
 }
 
 .hero-price {
   text-align: center;
+  padding: 1.5rem;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  min-width: 250px;
+  height: 220px; /* Fixed height to match vault-info */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+  flex: 1; /* Make both boxes equal width */
+}
+
+.hero-price:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Make ETH price box wider to match BTC price box */
+.eth-price-box {
+  min-width: 280px; /* Wider than the default 250px to match BTC box */
+}
+
+/* Make BTC price box match ETH price box width */
+.btc-price-box {
+  min-width: 280px; /* Same width as ETH box */
 }
 
 .price-label {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 500;
   margin-bottom: 0.5rem;
@@ -39,17 +256,17 @@
 }
 
 .price-value {
-  font-size: 4rem;
+  font-size: 2.8rem; /* Slightly reduced to fit better in fixed height */
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   line-height: 1;
 }
 
 .price-change {
-  font-size: 1.5rem;
+  font-size: 1.1rem; /* Slightly reduced to fit better in fixed height */
   font-weight: 600;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 8px;
   display: inline-block;
 }
@@ -62,6 +279,117 @@
 .price-change.negative {
   color: var(--danger-color);
   background-color: rgba(239, 68, 68, 0.1);
+}
+
+.price-error {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  font-weight: 500;
+}
+
+
+
+.vault-info {
+  text-align: left;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  min-width: 350px;
+  height: 220px; /* Increased height to accommodate the new link */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vault-label {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 0.75rem; /* Reduced margin to fit better in fixed height */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vault-address {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem; /* Reduced margin to fit better in fixed height */
+  padding: 0.75rem; /* Reduced padding to fit better in fixed height */
+  background-color: var(--background-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.address-text {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.copy-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+}
+
+.copy-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+
+.vault-link {
+  margin-top: 0.75rem;
+}
+
+.vault-link-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.vault-link-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: var(--text-primary);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.vault-link-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .vault-address-mini {
@@ -116,14 +444,6 @@
   text-align: center;
 }
 
-.section-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
 .primary-metrics {
   margin-bottom: 3rem;
   padding: 0 1rem;
@@ -166,7 +486,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
-  min-height: 430px;
+  min-height: 340px;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -197,6 +517,31 @@
   .main-content {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+  
+  .hero-price {
+    height: 180px; /* Medium height on tablet */
+  }
+  
+  .eth-price-box {
+    min-width: 240px; /* Medium width on tablet */
+  }
+  
+  .btc-price-box {
+    min-width: 240px; /* Same width as ETH box on tablet */
+  }
+  
+  .vault-info {
+    height: 200px; /* Increased height on tablet to accommodate link */
+  }
+  
+  .vault-link-button {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+  }
+  
+  .price-value {
+    font-size: 2.5rem; /* Medium font on tablet */
   }
   
   .performance-grid {

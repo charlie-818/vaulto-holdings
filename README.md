@@ -42,10 +42,14 @@ A professional, data-centric web dashboard for Vaulto Holdings' Ethereum Vault, 
 
 ### CoinGecko Integration
 The dashboard integrates with CoinGecko API to provide:
-- **Real-time ETH Price**: Accurate current Ethereum price
-- **Daily Change Percentage**: Precise 24-hour price change
+- **Real-time ETH & BTC Prices**: Accurate current prices with retry logic and validation
+- **Daily Change Percentage**: Precise 24-hour price changes for both assets
+- **Batch API Requests**: Efficient single request for both ETH and BTC prices
+- **Automatic Retry Logic**: 3 retry attempts with exponential backoff for reliability
+- **Data Validation**: Sanity checks to ensure price data quality
+- **Smart Caching**: 60-second cache with validation to respect API rate limits
+- **Manual Refresh**: Users can force refresh prices via the header refresh button
 - **Historical Price Data**: 365-day price chart for performance visualization
-- **Automatic Caching**: 30-second cache to reduce API calls
 - **Fallback Data**: Graceful degradation when API is unavailable
 
 ### API Endpoints Used

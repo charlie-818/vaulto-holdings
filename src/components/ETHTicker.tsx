@@ -13,7 +13,7 @@ const ETHTicker: React.FC<ETHTickerProps> = ({ ethPrice }) => {
     <div className="eth-ticker">
       <div className="ticker-content">
         <span className="ticker-label">ETH</span>
-        <span className="ticker-price">${ethPrice.current.toLocaleString()}</span>
+        <span className="ticker-price">${Math.round(ethPrice.current).toLocaleString()}</span>
         <span className={`ticker-change ${isPositive ? 'positive' : 'negative'}`}>
           {isPositive ? '+' : ''}{ethPrice.dailyChangePercent.toFixed(2)}%
         </span>

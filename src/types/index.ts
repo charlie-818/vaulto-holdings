@@ -53,6 +53,9 @@ export interface VaultActivity {
   dailyVolume: number;
   openPositions: number;
   recentTrades: Trade[];
+  activities?: Trade[];
+  totalTrades?: number;
+  totalVolume?: number;
 }
 
 export interface Trade {
@@ -61,6 +64,9 @@ export interface Trade {
   amount: number;
   price: number;
   timestamp: Date;
+  asset?: string;
+  pnl?: number;
+  fee?: number;
 }
 
 export interface VaultStatistics {
@@ -84,6 +90,18 @@ export interface CoinGeckoPriceResponse {
     usd_24h_change: number;
     usd_24h_vol: number;
     usd_market_cap: number;
+  };
+  bitcoin: {
+    usd: number;
+    usd_24h_change: number;
+    usd_24h_vol?: number;
+    usd_market_cap?: number;
+  };
+  [key: string]: {
+    usd: number;
+    usd_24h_change: number;
+    usd_24h_vol?: number;
+    usd_market_cap?: number;
   };
 }
 

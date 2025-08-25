@@ -3,50 +3,65 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { marketAPI } from '../services/api';
 import './PerformanceChart.css';
 
-interface PerformanceData {
-  date: string;
-  price: number;
+interface HourlyPnLData {
+  hour: string;
+  pnl: number;
 }
 
 interface PerformanceChartProps {
-  data?: PerformanceData[];
+  data?: HourlyPnLData[];
 }
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) => {
-  const [data, setData] = useState<PerformanceData[]>([]);
+  const [data, setData] = useState<HourlyPnLData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchHourlyPnLData = async (forceRefresh: boolean = false) => {
+    try {
+      setLoading(true);
+      
+      // If forcing refresh, invalidate cache first
+      if (forceRefresh) {
+        console.log('Force refreshing PnL data...');
+        // Clear any cached data by making a fresh request
+      }
+      
+      const hourlyData = await marketAPI.generateHourlyPnLData();
+      setData(hourlyData);
+      setError(null);
+      setLastUpdated(new Date());
+      
+      console.log('PnL data updated successfully:', hourlyData.length, 'data points');
+    } catch (err) {
+      console.error('Error fetching hourly PnL data:', err);
+      setError('Failed to load hourly PnL data');
+      if (propData) {
+        setData(propData);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchETHData = async () => {
-      try {
-        setLoading(true);
-        const ethData = await marketAPI.getETHHistoricalData(365); // Last 365 days
-        setData(ethData);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching ETH data:', err);
-        setError('Failed to load Ethereum price data');
-        // Fallback to prop data if available
-        if (propData) {
-          setData(propData);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (propData) {
       setData(propData);
       setLoading(false);
     } else {
-      fetchETHData();
+      fetchHourlyPnLData(false);
     }
+
+    // Set up periodic refresh for real-time updates
+    const interval = setInterval(() => fetchHourlyPnLData(false), 60000); // Refresh every minute
+
+    return () => clearInterval(interval);
   }, [propData]);
 
   const formatTooltip = (value: any, name: string) => {
-    if (name === 'price') {
-      return [`$${value.toLocaleString()}`, 'ETH Price'];
+    if (name === 'pnl') {
+      return [`$${value.toLocaleString()}`, 'PnL'];
     }
     return [value, name];
   };
@@ -55,14 +70,22 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     return `$${value.toLocaleString()}`;
   };
 
+  const formatXAxis = (value: string) => {
+    // Format time display (e.g., "14:30" -> "2:30 PM")
+    const [hour, minute] = value.split(':').map(Number);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+  };
+
   if (loading) {
     return (
       <div className="performance-chart">
         <div className="chart-header">
-          <h3>Ethereum Price Performance</h3>
+          <h3>Total PnL</h3>
         </div>
         <div className="chart-container">
-          <div className="loading">Loading Ethereum price data...</div>
+          <div className="loading">Loading PnL data...</div>
         </div>
       </div>
     );
@@ -72,7 +95,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
     return (
       <div className="performance-chart">
         <div className="chart-header">
-          <h3>Ethereum Price Performance</h3>
+          <h3>Total PnL</h3>
         </div>
         <div className="chart-container">
           <div className="error">{error}</div>
@@ -84,38 +107,37 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
   return (
     <div className="performance-chart">
       <div className="chart-header">
-        <h3>Ethereum Price Performance</h3>
+        <div className="chart-title">
+          <h3>Total PnL</h3>
+          {lastUpdated && (
+            <div className="last-updated">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
+        <button 
+          className="refresh-button" 
+          onClick={() => fetchHourlyPnLData(true)}
+          disabled={loading}
+          title="Refresh PnL data"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          </svg>
+        </button>
       </div>
       <div className="chart-container">
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={data} margin={{ top: 10, right: 40, left: 40, bottom: 15 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
-              dataKey="date" 
+              dataKey="hour" 
               stroke="#6b7280"
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              ticks={(() => {
-                const monthTicks: string[] = [];
-                const seenMonths = new Set<string>();
-                
-                data.forEach((item, index) => {
-                  const date = new Date(item.date);
-                  const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-                  
-                  if (!seenMonths.has(monthKey)) {
-                    seenMonths.add(monthKey);
-                    monthTicks.push(item.date);
-                  }
-                });
-                
-                return monthTicks;
-              })()}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString('en-US', { month: 'short' });
-              }}
+              tickFormatter={formatXAxis}
+              tickMargin={10}
             />
             <YAxis 
               stroke="#6b7280"
@@ -123,17 +145,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
               tickLine={false}
               axisLine={false}
               tickFormatter={formatYAxis}
+              tickMargin={10}
             />
             <Tooltip 
               formatter={formatTooltip}
-              labelFormatter={(label) => {
-                const date = new Date(label);
-                return date.toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                });
-              }}
+              labelFormatter={(label) => `Time: ${formatXAxis(label)}`}
               labelStyle={{ color: '#1a1a1a' }}
               contentStyle={{
                 backgroundColor: '#ffffff',
@@ -144,11 +160,12 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data: propData }) =
             />
             <Line 
               type="monotone" 
-              dataKey="price" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
+              dataKey="pnl" 
+              stroke="#10b981" 
+              strokeWidth={3}
               dot={false}
-              activeDot={{ r: 4, fill: '#3b82f6' }}
+              activeDot={{ r: 6, fill: "#10b981" }}
+              connectNulls={true}
             />
           </LineChart>
         </ResponsiveContainer>

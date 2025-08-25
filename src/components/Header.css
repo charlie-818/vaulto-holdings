@@ -21,6 +21,8 @@
   min-height: 70px;
 }
 
+
+
 .logo {
   display: flex;
   align-items: center;
@@ -108,6 +110,8 @@
     font-size: 0.9rem;
     padding: 0.5rem 0.5rem;
   }
+  
+
 }
 
 /* Mobile Breakpoint */
@@ -135,6 +139,8 @@
   .logo h1 {
     font-size: 1.2rem;
   }
+  
+
   
   .nav-list {
     gap: 0.5rem;
@@ -166,6 +172,8 @@
   .logo h1 {
     font-size: 1.1rem;
   }
+  
+
   
   .nav-link {
     font-size: 0.8rem;

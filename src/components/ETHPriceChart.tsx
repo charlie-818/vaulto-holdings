@@ -103,7 +103,11 @@ const ETHPriceChart: React.FC<ETHPriceChartProps> = ({ data: propData }) => {
     console.log(`Fetching fresh data for ${timeFrame} timeframe...`);
     
     const fetchPromise = (async () => {
-      try {
+      let retryCount = 0;
+      const maxRetries = timeFrame === '90D' ? 2 : 1; // More retries for 90D
+      
+      while (retryCount <= maxRetries) {
+        try {
                  // Use CoinGecko API with proper rate limiting
          const daysMap = {
            '1D': 1,
@@ -122,6 +126,8 @@ const ETHPriceChart: React.FC<ETHPriceChartProps> = ({ data: propData }) => {
             }
           }
         );
+
+        console.log(`CoinGecko response status for ${timeFrame}:`, coingeckoResponse.status);
         
         if (!coingeckoResponse.ok) {
           throw new Error(`CoinGecko API failed: ${coingeckoResponse.status}`);
@@ -133,18 +139,32 @@ const ETHPriceChart: React.FC<ETHPriceChartProps> = ({ data: propData }) => {
           throw new Error('Invalid data structure from CoinGecko');
         }
         
-                 // Transform and validate data
-         const transformedData: PriceDataPoint[] = coingeckoData.prices
-           .map(([timestamp, price]: [number, number]) => ({
-             timestamp,
-             price: Math.round(price * 100) / 100,
-             date: new Date(timestamp).toISOString()
-           }))
-           .filter((point: PriceDataPoint) => point.price > 0 && point.timestamp > 0 && !isNaN(point.price))
-           .sort((a: PriceDataPoint, b: PriceDataPoint) => a.timestamp - b.timestamp);
+                         // Transform and validate data
+        console.log(`Raw data for ${timeFrame}:`, coingeckoData.prices.length, 'points');
+        
+        const transformedData: PriceDataPoint[] = coingeckoData.prices
+          .map(([timestamp, price]: [number, number]) => ({
+            timestamp,
+            price: Math.round(price * 100) / 100,
+            date: new Date(timestamp).toISOString()
+          }))
+          .filter((point: PriceDataPoint) => {
+            const isValid = point.price > 0 && point.timestamp > 0 && !isNaN(point.price);
+            if (!isValid) {
+              console.warn(`Filtered out invalid point for ${timeFrame}:`, point);
+            }
+            return isValid;
+          })
+          .sort((a: PriceDataPoint, b: PriceDataPoint) => a.timestamp - b.timestamp);
         
         if (transformedData.length === 0) {
+          console.error(`No valid price data received for ${timeFrame}`);
           throw new Error('No valid price data received');
+        }
+
+        // Additional validation for 90-day data
+        if (timeFrame === '90D' && transformedData.length < 10) {
+          console.warn(`90D data has very few points (${transformedData.length}), this might indicate an issue`);
         }
         
         // Cache the successful result
@@ -154,36 +174,77 @@ const ETHPriceChart: React.FC<ETHPriceChartProps> = ({ data: propData }) => {
         });
         
         console.log(`Successfully fetched and cached data for ${timeFrame}:`, transformedData.length, 'points');
+        console.log(`Sample prices for ${timeFrame}:`, transformedData.slice(0, 3).map(p => p.price));
         return transformedData;
         
       } catch (err) {
-        console.error(`Error fetching data for ${timeFrame}:`, err);
+        console.error(`Error fetching data for ${timeFrame} (attempt ${retryCount + 1}):`, err);
+        retryCount++;
         
-        // Try to use cached data even if expired
-        const cached = dataCache.current.get(cacheKey);
-        if (cached) {
-          console.log(`Using expired cached data for ${timeFrame} due to fetch error`);
-          return cached.data;
+        if (retryCount <= maxRetries) {
+          console.log(`Retrying ${timeFrame} in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
         }
         
-                 // Generate fallback data
-         console.warn(`Generating fallback data for ${timeFrame}`);
-         const fallbackData: PriceDataPoint[] = [];
-         const basePrice = 4380;
-         const dataPoints = 24; // Default to 24 data points for all timeframes
-         const intervalMs = (24 * 60 * 60 * 1000) / dataPoints;
-        
-        for (let i = dataPoints - 1; i >= 0; i--) {
-          const timestamp = now - (i * intervalMs);
-          fallbackData.push({
-            timestamp,
-            price: basePrice + (Math.random() - 0.5) * 50,
-            date: new Date(timestamp).toISOString()
-          });
-        }
-        
-        return fallbackData;
+        // All retries failed, proceed to fallback logic
+        break;
       }
+    }
+    
+    // Try to use cached data even if expired
+    const cached = dataCache.current.get(cacheKey);
+    if (cached) {
+      console.log(`Using expired cached data for ${timeFrame} due to fetch error`);
+      return cached.data;
+    }
+
+    // For 90D, try to use 30D data as fallback if available
+    if (timeFrame === '90D') {
+      const thirtyDayCache = dataCache.current.get('eth_30D');
+      if (thirtyDayCache) {
+        console.log(`Using 30D cached data as fallback for 90D`);
+        return thirtyDayCache.data;
+      }
+    }
+    
+    // Generate fallback data
+    console.warn(`Generating fallback data for ${timeFrame}`);
+    const fallbackData: PriceDataPoint[] = [];
+    const basePrice = 4380;
+    
+    // Adjust data points based on timeframe
+    let dataPoints: number;
+    let intervalMs: number;
+    
+    switch (timeFrame) {
+      case '90D':
+        dataPoints = 90; // Daily data points for 90 days
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day intervals
+        break;
+      case '30D':
+        dataPoints = 30; // Daily data points for 30 days
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day intervals
+        break;
+      case '7D':
+        dataPoints = 7; // Daily data points for 7 days
+        intervalMs = 24 * 60 * 60 * 1000; // 1 day intervals
+        break;
+      default: // 1D
+        dataPoints = 24; // Hourly data points for 1 day
+        intervalMs = 60 * 60 * 1000; // 1 hour intervals
+    }
+    
+    for (let i = dataPoints - 1; i >= 0; i--) {
+      const timestamp = now - (i * intervalMs);
+      fallbackData.push({
+        timestamp,
+        price: basePrice + (Math.random() - 0.5) * 50,
+        date: new Date(timestamp).toISOString()
+      });
+    }
+    
+    return fallbackData;
     })();
     
     // Store the fetch promise

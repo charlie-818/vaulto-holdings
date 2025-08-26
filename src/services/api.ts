@@ -741,12 +741,25 @@ export const marketAPI = {
 
 
 
-  // Generate ETH price data from Yahoo Finance
-  generateETHPriceData: async (): Promise<Array<{ hour: string; price: number }>> => {
-    console.log('Fetching ETH price data from Yahoo Finance...');
+  // Generate ETH price data for different time frames using Yahoo Finance
+  generateETHPriceData: async (timeFrame: string = '1D'): Promise<Array<{ timestamp: number; price: number; date: string }>> => {
+    console.log(`Fetching ETH price data for ${timeFrame} timeframe from Yahoo Finance...`);
+    
+    // Map time frames to Yahoo Finance parameters
+    const timeFrameMap = {
+      '1H': { interval: '1m', range: '1h' },
+      '4H': { interval: '5m', range: '4h' },
+      '1D': { interval: '1h', range: '1d' },
+      '7D': { interval: '1h', range: '7d' },
+      '30D': { interval: '1d', range: '30d' },
+      '90D': { interval: '1d', range: '90d' }
+    };
+    
+    const config = timeFrameMap[timeFrame as keyof typeof timeFrameMap] || timeFrameMap['1D'];
+    
     try {
-      // Fetch ETH price data from Yahoo Finance
-      const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/ETH-USD?interval=1h&range=1d');
+      // Fetch ETH price data from Yahoo Finance with dynamic parameters
+      const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/ETH-USD?interval=${config.interval}&range=${config.range}&includePrePost=false&events=div%2Csplit`);
       
       if (!response.ok) {
         throw new Error(`Yahoo Finance API failed: ${response.status}`);
@@ -766,7 +779,7 @@ export const marketAPI = {
         throw new Error('Missing price data from Yahoo Finance');
       }
       
-      // Convert timestamps to hourly data points
+      // Convert timestamps to data points with proper format
       const dataPoints = [];
       
       for (let i = 0; i < timestamps.length; i++) {
@@ -775,11 +788,11 @@ export const marketAPI = {
         
         if (price && price > 0) {
           const date = new Date(timestamp * 1000);
-          const hourString = date.getHours().toString().padStart(2, '0') + ':00';
           
           dataPoints.push({
-            hour: hourString,
-            price: Math.round(price)
+            timestamp: timestamp * 1000,
+            price: Math.round(price * 100) / 100,
+            date: date.toISOString()
           });
         }
       }
@@ -818,16 +831,16 @@ export const marketAPI = {
            throw new Error('Invalid data structure from CoinGecko');
          }
          
-         // Convert CoinGecko data to hourly format
+         // Convert CoinGecko data to proper format
          const dataPoints = [];
          
          for (const [timestamp, price] of data.prices) {
            const date = new Date(timestamp);
-           const hourString = date.getHours().toString().padStart(2, '0') + ':00';
            
            dataPoints.push({
-             hour: hourString,
-             price: Math.round(price)
+             timestamp: timestamp,
+             price: Math.round(price * 100) / 100,
+             date: date.toISOString()
            });
          }
          
@@ -841,13 +854,47 @@ export const marketAPI = {
         const fallbackData = [];
         const currentEthPrice = 4380; // Default current price
         
-        // Create basic hourly data points
-        for (let hour = 0; hour <= 23; hour++) {
-          const hourString = hour.toString().padStart(2, '0') + ':00';
+        // Create basic data points with proper format based on time frame
+        const now = Date.now();
+        let dataPoints = 24; // Default to 24 points
+        let intervalMs = 60 * 60 * 1000; // Default to 1 hour
+        
+        // Adjust data points based on time frame
+        switch (timeFrame) {
+          case '1H':
+            dataPoints = 60;
+            intervalMs = 60 * 1000; // 1 minute
+            break;
+          case '4H':
+            dataPoints = 48;
+            intervalMs = 5 * 60 * 1000; // 5 minutes
+            break;
+          case '1D':
+            dataPoints = 24;
+            intervalMs = 60 * 60 * 1000; // 1 hour
+            break;
+          case '7D':
+            dataPoints = 168;
+            intervalMs = 60 * 60 * 1000; // 1 hour
+            break;
+          case '30D':
+            dataPoints = 30;
+            intervalMs = 24 * 60 * 60 * 1000; // 1 day
+            break;
+          case '90D':
+            dataPoints = 90;
+            intervalMs = 24 * 60 * 60 * 1000; // 1 day
+            break;
+        }
+        
+        for (let i = 0; i < dataPoints; i++) {
+          const timestamp = now - (dataPoints - 1 - i) * intervalMs;
+          const date = new Date(timestamp);
           
           fallbackData.push({
-            hour: hourString,
-            price: Math.round(currentEthPrice + (Math.random() - 0.5) * 100)
+            timestamp: timestamp,
+            price: Math.round((currentEthPrice + (Math.random() - 0.5) * 100) * 100) / 100,
+            date: date.toISOString()
           });
         }
         

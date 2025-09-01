@@ -72,37 +72,7 @@
   font-size: 1rem;
 }
 
-.loading-progress {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 200px;
-}
 
-.progress-bar {
-  width: 100%;
-  height: 3px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #000000;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-  position: relative;
-}
-
-.progress-text {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #111827;
-}
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
@@ -115,17 +85,7 @@
     color: #9ca3af;
   }
   
-  .progress-bar {
-    background: #374151;
-  }
-  
-  .progress-fill {
-    background: #ffffff;
-  }
-  
-  .progress-text {
-    color: #f9fafb;
-  }
+
 }
 
 /* Responsive design */
@@ -139,9 +99,7 @@
     font-size: 0.9rem;
   }
   
-  .progress-bar {
-    height: 3px;
-  }
+
 }
 
 @media (max-width: 480px) {

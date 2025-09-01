@@ -31,28 +31,23 @@ const Dashboard: React.FC = () => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch real vault data from Hyperliquid
   const fetchVaultData = async () => {
     try {
       setLoadingStage('fetching-vault');
-      setLoadingProgress(20);
       
       // Fetch vault state first
       const vaultState = await hyperliquidAPI.getVaultState();
-      setLoadingProgress(40);
       
       setLoadingStage('fetching-prices');
-      setLoadingProgress(60);
       
       // Try to fetch crypto prices with robust fallback system
       let cryptoPrices: { eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } } | null = null;
       try {
         cryptoPrices = await marketAPI.getCryptoPrices();
         console.log('Fetched crypto prices successfully:', cryptoPrices);
-        setLoadingProgress(80);
       } catch (priceError) {
         console.error('Failed to fetch crypto prices:', priceError);
         // Don't set price data if fetch fails - let UI show error state
@@ -61,7 +56,6 @@ const Dashboard: React.FC = () => {
       }
       
       setLoadingStage('calculating');
-      setLoadingProgress(90);
       
       // Use ETH price from vault state if crypto prices failed
       const ethPrice = cryptoPrices?.eth.current || 2450; // Fallback for calculations only
@@ -114,7 +108,6 @@ const Dashboard: React.FC = () => {
       ]);
       
       setLoadingStage('complete');
-      setLoadingProgress(100);
       setError(null);
     } catch (error) {
       console.error('Error fetching vault data:', error);
@@ -130,11 +123,9 @@ const Dashboard: React.FC = () => {
     const initializeData = async () => {
       setLoading(true);
       setLoadingStage('initializing');
-      setLoadingProgress(0);
       
       // Simulate a brief initialization delay for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
-      setLoadingProgress(10);
       
       await fetchVaultData();
       
@@ -222,8 +213,6 @@ const Dashboard: React.FC = () => {
           <div className="container">
             <LoadingSpinner 
               message={getLoadingMessage()}
-              showProgress={true}
-              progress={loadingProgress}
               size="large"
             />
           </div>

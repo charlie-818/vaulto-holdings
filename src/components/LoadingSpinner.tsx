@@ -3,15 +3,11 @@ import './LoadingSpinner.css';
 
 interface LoadingSpinnerProps {
   message?: string;
-  showProgress?: boolean;
-  progress?: number;
   size?: 'small' | 'medium' | 'large';
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   message = 'Loading...', 
-  showProgress = false, 
-  progress = 0,
   size = 'medium' 
 }) => {
   const [dots, setDots] = useState('');
@@ -32,18 +28,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       {message && (
         <div className="loading-message">
           {message}{dots}
-        </div>
-      )}
-      
-      {showProgress && (
-        <div className="loading-progress">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            ></div>
-          </div>
-          <div className="progress-text">{Math.round(progress)}%</div>
         </div>
       )}
     </div>

@@ -21,7 +21,6 @@ const Header: React.FC<HeaderProps> = () => {
           
           <nav className="nav">
             <ul className="nav-list">
-              <li><a href="/prospectus.pdf" className="nav-link">Prospectus</a></li>
               <li><a href="/contact" className="nav-link">Contact Us</a></li>
             </ul>
           </nav>

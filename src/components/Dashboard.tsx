@@ -346,7 +346,7 @@ const Dashboard: React.FC = () => {
             <section id="positions" className="positions-section">
               <h2 className="section-title">Current Positions</h2>
               <div className="positions-grid">
-                {positions.filter(position => position.coin === 'PAXG').map((position, index) => (
+                {positions.map((position, index) => (
                   <div key={index} className="position-card">
                     <div className="position-header">
                       <div className="position-asset">{position.coin}</div>

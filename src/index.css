@@ -13,6 +13,9 @@ body {
   background-color: #ffffff;
   color: #1a1a1a;
   line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 code {
@@ -53,5 +56,47 @@ code {
 @media (min-width: 1024px) {
   .container {
     padding: 0 3rem;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  /* Improve touch targets */
+  button, 
+  a, 
+  input, 
+  select, 
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, 
+  select, 
+  textarea {
+    font-size: 16px;
+  }
+  
+  /* Improve scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small mobile improvements */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  /* Ensure proper spacing for small screens */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }

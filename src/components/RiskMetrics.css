@@ -338,27 +338,306 @@
 }
 
 @media (max-width: 768px) {
+  .risk-metrics {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
   .risk-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 20px;
   }
   
   .risk-summary {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+    width: 100%;
+  }
+  
+  .summary-metric {
+    align-items: flex-start;
+  }
+  
+  .summary-label {
+    font-size: 11px;
+  }
+  
+  .summary-value {
+    font-size: 18px;
   }
   
   .risk-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .risk-card {
+    padding: 16px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .var-grid {
+    gap: 12px;
+  }
+  
+  .var-item {
+    padding: 12px;
+  }
+  
+  .var-label {
+    font-size: 13px;
+  }
+  
+  .var-level {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+  
+  .var-value {
+    font-size: 18px;
+  }
+  
+  .var-description {
+    font-size: 11px;
+  }
+  
+  .leverage-grid {
+    gap: 12px;
+  }
+  
+  .leverage-item {
+    padding: 10px;
+  }
+  
+  .leverage-label {
+    font-size: 13px;
+  }
+  
+  .leverage-value {
+    font-size: 14px;
+  }
+  
+  .leverage-level {
+    font-size: 11px;
+  }
+  
+  .leverage-description {
+    font-size: 10px;
+  }
+  
+  .exposure-grid {
+    gap: 10px;
+  }
+  
+  .exposure-item {
+    padding: 10px;
+  }
+  
+  .exposure-label {
+    font-size: 12px;
+  }
+  
+  .exposure-level {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+  
+  .exposure-value {
+    font-size: 14px;
+  }
+  
+  .exposure-description {
+    font-size: 10px;
+  }
+  
+  .risk-insights {
+    padding: 16px;
+  }
+  
+  .insights-title {
+    font-size: 16px;
+    margin-bottom: 12px;
   }
   
   .insights-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .insight-item {
     flex-direction: column;
     text-align: center;
+    padding: 12px;
+  }
+  
+  .insight-icon {
+    font-size: 20px;
+  }
+  
+  .insight-content h4 {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .insight-content p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .risk-metrics {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .risk-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+  
+  .risk-summary {
+    gap: 12px;
+  }
+  
+  .summary-label {
+    font-size: 10px;
+  }
+  
+  .summary-value {
+    font-size: 16px;
+  }
+  
+  .risk-grid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .risk-card {
+    padding: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .var-grid {
+    gap: 10px;
+  }
+  
+  .var-item {
+    padding: 10px;
+  }
+  
+  .var-label {
+    font-size: 12px;
+  }
+  
+  .var-level {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+  
+  .var-value {
+    font-size: 16px;
+  }
+  
+  .var-description {
+    font-size: 10px;
+  }
+  
+  .leverage-grid {
+    gap: 10px;
+  }
+  
+  .leverage-item {
+    padding: 8px;
+  }
+  
+  .leverage-label {
+    font-size: 12px;
+  }
+  
+  .leverage-value {
+    font-size: 13px;
+  }
+  
+  .leverage-level {
+    font-size: 10px;
+  }
+  
+  .leverage-description {
+    font-size: 9px;
+  }
+  
+  .exposure-grid {
+    gap: 8px;
+  }
+  
+  .exposure-item {
+    padding: 8px;
+  }
+  
+  .exposure-label {
+    font-size: 11px;
+  }
+  
+  .exposure-level {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  
+  .exposure-value {
+    font-size: 13px;
+  }
+  
+  .exposure-description {
+    font-size: 9px;
+  }
+  
+  .risk-insights {
+    padding: 12px;
+  }
+  
+  .insights-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .insights-grid {
+    gap: 10px;
+  }
+  
+  .insight-item {
+    padding: 10px;
+  }
+  
+  .insight-icon {
+    font-size: 18px;
+  }
+  
+  .insight-content h4 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .insight-content p {
+    font-size: 11px;
   }
 }

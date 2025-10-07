@@ -261,41 +261,45 @@
 }
 
 @media (max-width: 768px) {
-  .depositors-header {
+  .top-depositors {
+    margin-bottom: 2rem;
+  }
+  
+  .table-header-info {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    text-align: left;
   }
   
   .depositors-summary {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
+    width: 100%;
   }
   
-  .table-header,
-  .table-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .total-count,
+  .total-equity {
+    font-size: 0.85rem;
   }
   
-  .header-cell,
-  .table-cell {
-    padding: 8px 12px;
-    justify-content: flex-start;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .header-cell:before,
-  .table-cell:before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-right: 8px;
-    min-width: 120px;
+  .depositors-table {
+    padding: 1rem;
   }
   
   .table-header {
     display: none;
+  }
+  
+  .table-body {
+    max-height: none;
+    overflow-y: visible;
   }
   
   .table-row {
@@ -304,17 +308,224 @@
     background-color: var(--background-secondary);
     border-radius: 8px;
     padding: 16px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .table-row:last-child {
+    margin-bottom: 0;
   }
   
   .table-cell {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: none;
-    padding: 4px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
   }
   
   .table-cell:last-child {
     border-bottom: none;
+  }
+  
+  .table-cell.rank {
+    justify-content: flex-start;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .table-cell.rank:before {
+    content: "Rank: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .table-cell.address:before {
+    content: "Address: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .table-cell.equity:before {
+    content: "Equity: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .table-cell.pnl:before {
+    content: "PnL: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .table-cell.all-time-pnl:before {
+    content: "All-Time PnL: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .table-cell.entry:before {
+    content: "Entry Date: ";
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  
+  .address-container {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  
+  .address-text {
+    font-size: 0.75rem;
+    word-break: break-all;
+    text-align: right;
+  }
+  
+  .copy-button {
+    min-width: 24px;
+    height: 24px;
+    padding: 2px;
+  }
+  
+  .copy-button svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .equity-container {
+    align-items: flex-end;
+  }
+  
+  .equity-value {
+    font-size: 0.85rem;
+  }
+  
+  .equity-percentage {
+    font-size: 0.7rem;
+  }
+  
+  .pnl-value {
+    font-size: 0.85rem;
+  }
+  
+  .entry-date {
+    font-size: 0.75rem;
+  }
+  
+  .show-more-button {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+  .top-depositors {
+    margin-bottom: 1.5rem;
+  }
+  
+  .table-header-info {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .depositors-summary {
+    gap: 6px;
+  }
+  
+  .total-count,
+  .total-equity {
+    font-size: 0.8rem;
+  }
+  
+  .depositors-table {
+    padding: 0.75rem;
+  }
+  
+  .table-row {
+    margin-bottom: 12px;
+    padding: 12px;
+  }
+  
+  .table-cell {
+    padding: 6px 0;
+    font-size: 0.8rem;
+  }
+  
+  .table-cell.rank:before,
+  .table-cell.address:before,
+  .table-cell.equity:before,
+  .table-cell.pnl:before,
+  .table-cell.all-time-pnl:before,
+  .table-cell.entry:before {
+    font-size: 0.75rem;
+    min-width: 100px;
+  }
+  
+  .address-text {
+    font-size: 0.7rem;
+  }
+  
+  .copy-button {
+    min-width: 20px;
+    height: 20px;
+  }
+  
+  .copy-button svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .equity-value {
+    font-size: 0.8rem;
+  }
+  
+  .equity-percentage {
+    font-size: 0.65rem;
+  }
+  
+  .pnl-value {
+    font-size: 0.8rem;
+  }
+  
+  .entry-date {
+    font-size: 0.7rem;
+  }
+  
+  .show-more-button {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    max-width: 280px;
+  }
+  
+  .no-depositors {
+    padding: 30px 15px;
+  }
+  
+  .no-depositors-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  
+  .no-depositors h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  
+  .no-depositors p {
+    font-size: 0.85rem;
   }
 }

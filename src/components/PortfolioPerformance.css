@@ -269,31 +269,239 @@
 }
 
 @media (max-width: 768px) {
+  .portfolio-performance {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
   .performance-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 20px;
   }
   
   .performance-summary {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+    width: 100%;
+  }
+  
+  .summary-metric {
+    align-items: flex-start;
+  }
+  
+  .summary-label {
+    font-size: 11px;
+  }
+  
+  .summary-value {
+    font-size: 18px;
   }
   
   .performance-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .performance-card {
+    padding: 16px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+    margin-bottom: 12px;
   }
   
   .returns-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .return-item {
+    padding: 10px;
+  }
+  
+  .return-label {
+    font-size: 11px;
+  }
+  
+  .return-percent {
+    font-size: 14px;
+  }
+  
+  .return-amount {
+    font-size: 12px;
+  }
+  
+  .risk-grid {
+    gap: 12px;
+  }
+  
+  .risk-item {
+    padding: 10px;
+  }
+  
+  .risk-label {
+    font-size: 13px;
+  }
+  
+  .risk-value {
+    font-size: 14px;
+  }
+  
+  .risk-level {
+    font-size: 11px;
+  }
+  
+  .performance-insights {
+    padding: 16px;
+  }
+  
+  .insights-title {
+    font-size: 16px;
+    margin-bottom: 12px;
   }
   
   .insights-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .insight-item {
     flex-direction: column;
     text-align: center;
+    padding: 12px;
+  }
+  
+  .insight-icon {
+    font-size: 20px;
+  }
+  
+  .insight-content h4 {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .insight-content p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-performance {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .performance-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+  
+  .performance-summary {
+    gap: 12px;
+  }
+  
+  .summary-label {
+    font-size: 10px;
+  }
+  
+  .summary-value {
+    font-size: 16px;
+  }
+  
+  .performance-grid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .performance-card {
+    padding: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .returns-grid {
+    gap: 10px;
+  }
+  
+  .return-item {
+    padding: 8px;
+  }
+  
+  .return-label {
+    font-size: 10px;
+  }
+  
+  .return-percent {
+    font-size: 13px;
+  }
+  
+  .return-amount {
+    font-size: 11px;
+  }
+  
+  .risk-grid {
+    gap: 10px;
+  }
+  
+  .risk-item {
+    padding: 8px;
+  }
+  
+  .risk-label {
+    font-size: 12px;
+  }
+  
+  .risk-value {
+    font-size: 13px;
+  }
+  
+  .risk-level {
+    font-size: 10px;
+  }
+  
+  .performance-insights {
+    padding: 12px;
+  }
+  
+  .insights-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .insights-grid {
+    gap: 10px;
+  }
+  
+  .insight-item {
+    padding: 10px;
+  }
+  
+  .insight-icon {
+    font-size: 18px;
+  }
+  
+  .insight-content h4 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .insight-content p {
+    font-size: 11px;
   }
 }

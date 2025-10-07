@@ -135,36 +135,24 @@ const Dashboard: React.FC = () => {
       try {
         const vaultState = await hyperliquidAPI.getVaultState();
         
-        // Get current prices for all assets in positions
+        // Get current prices for all assets in positions using the new Hyperliquid API
         const getCurrentPrice = async (coin: string) => {
-          // Try to get price from Hyperliquid market data first
           try {
-            const marketMeta = await hyperliquidAPI.getMarketMeta();
-            const asset = marketMeta.assets?.find((a: any) => a.name === coin);
-            if (asset && asset.price) {
-              return parseFloat(asset.price);
-            }
+            // Use the new getAssetPrice function that fetches accurate current market prices
+            const currentPrice = await hyperliquidAPI.getAssetPrice(coin);
+            return currentPrice;
           } catch (error) {
-            console.log(`Failed to get ${coin} price from Hyperliquid, using fallback`);
-          }
-          
-          // Fallback to known crypto prices
-          if (coin === 'ETH') {
-            return cryptoPrices?.eth.current || 2450;
-          } else if (coin === 'BTC') {
-            return cryptoPrices?.btc.current || 112000;
-          } else {
-            // For other assets, try to get price from CoinGecko or use entry price as fallback
-            try {
-              const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin.toLowerCase()}&vs_currencies=usd`);
-              if (response.ok) {
-                const data = await response.json();
-                return data[coin.toLowerCase()]?.usd || 0;
-              }
-            } catch (error) {
-              console.log(`Failed to get ${coin} price from CoinGecko`);
+            console.log(`Failed to get ${coin} price from Hyperliquid API:`, error);
+            
+            // Fallback to known crypto prices for major assets
+            if (coin === 'ETH') {
+              return cryptoPrices?.eth.current || 2450;
+            } else if (coin === 'BTC') {
+              return cryptoPrices?.btc.current || 112000;
             }
-            return 0; // Return 0 if no price can be found
+            
+            // Return 0 if no price can be found
+            return 0;
           }
         };
         
@@ -172,11 +160,13 @@ const Dashboard: React.FC = () => {
         const positionData = await Promise.all(
           vaultState.assetPositions.map(async (pos: any) => {
             const currentPrice = await getCurrentPrice(pos.position.coin);
+            const entryPrice = parseFloat(pos.position.entryPx);
+            
             return {
               coin: pos.position.coin,
               size: parseFloat(pos.position.szi),
-              entryPrice: parseFloat(pos.position.entryPx),
-              currentPrice: currentPrice || parseFloat(pos.position.entryPx), // Use entry price as fallback
+              entryPrice: entryPrice,
+              currentPrice: currentPrice > 0 ? currentPrice : entryPrice, // Use entry price as fallback if current price is 0
               unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
               leverage: pos.position.leverage.value,
               liquidationPrice: parseFloat(pos.position.liquidationPx),
@@ -511,12 +501,12 @@ const Dashboard: React.FC = () => {
                         <span className="value">{position.size.toFixed(2)} {position.coin}</span>
                       </div>
                       <div className="position-row">
-                        <span className="label">Entry Price:</span>
-                        <span className="value">${position.entryPrice.toFixed(2)}</span>
-                      </div>
-                      <div className="position-row">
                         <span className="label">Leverage:</span>
                         <span className="value">{position.leverage.toFixed(2)}x</span>
+                      </div>
+                      <div className="position-row">
+                        <span className="label">Entry Price:</span>
+                        <span className="value">${position.entryPrice.toFixed(2)}</span>
                       </div>
                       <div className="position-row">
                         <span className="label">Current Price:</span>

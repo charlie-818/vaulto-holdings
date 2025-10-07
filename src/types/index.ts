@@ -29,6 +29,7 @@ export interface VaultMetrics {
     dailyChange: number;
     dailyChangePercent: number;
   };
+  currentPrices?: { [key: string]: number };
 }
 
 export interface PerformanceMetrics {

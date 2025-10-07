@@ -258,6 +258,80 @@ export const hyperliquidAPI = {
     }
   },
 
+  // Get current market prices for all assets
+  getCurrentMarketPrices: async () => {
+    const cacheKey = 'hyperliquid_market_prices';
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await hyperliquidClient.post('/info', {
+        type: 'metaAndAssetCtxs'
+      });
+      
+      // Extract price data from the response
+      const [metadata, assetContexts] = response.data;
+      const priceMap: { [key: string]: number } = {};
+      
+      // Map asset names to their current mark prices
+      // The assetContexts array corresponds to the universe array in metadata
+      const universe = metadata.universe;
+      
+      assetContexts.forEach((asset: any, index: number) => {
+        if (asset.markPx && universe[index] && universe[index].name) {
+          priceMap[universe[index].name] = parseFloat(asset.markPx);
+        }
+      });
+      
+      setCachedData(cacheKey, priceMap);
+      return priceMap;
+    } catch (error) {
+      console.error('Error fetching Hyperliquid market prices:', error);
+      throw error;
+    }
+  },
+
+  // Get current price for a specific asset
+  getAssetPrice: async (assetName: string): Promise<number> => {
+    try {
+      const priceMap = await hyperliquidAPI.getCurrentMarketPrices();
+      const price = priceMap[assetName];
+      
+      if (price === undefined) {
+        throw new Error(`Price not found for asset: ${assetName}`);
+      }
+      
+      return price;
+    } catch (error) {
+      console.error(`Error fetching price for ${assetName}:`, error);
+      throw error;
+    }
+  },
+
+  // Get current prices for multiple assets
+  getAssetPrices: async (assetNames: string[]): Promise<{ [key: string]: number }> => {
+    try {
+      const priceMap = await hyperliquidAPI.getCurrentMarketPrices();
+      const result: { [key: string]: number } = {};
+      
+      assetNames.forEach(assetName => {
+        const price = priceMap[assetName];
+        if (price !== undefined) {
+          result[assetName] = price;
+        } else {
+          console.warn(`Price not found for asset: ${assetName}`);
+        }
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching prices for multiple assets:', error);
+      throw error;
+    }
+  },
+
   // Get historical candle data for accurate PnL calculations
   getHistoricalCandles: async (coin: string, interval: string = '1h', limit: number = 24) => {
     const cacheKey = `hyperliquid_candles_${coin}_${interval}_${limit}`;
@@ -359,13 +433,16 @@ export const hyperliquidAPI = {
     };
   },
 
-  // Transform Hyperliquid data to our VaultMetrics format
-  transformVaultData: (vaultState: any, ethPrice: number) => {
+  // Transform Hyperliquid data to our VaultMetrics format with accurate current prices
+  transformVaultData: async (vaultState: any, ethPrice: number) => {
     const { marginSummary, assetPositions } = vaultState;
+    
+    // Get current market prices for all assets in positions
+    const assetNames = assetPositions.map((pos: any) => pos.position.coin);
+    const currentPrices = await hyperliquidAPI.getAssetPrices(assetNames);
     
     // Calculate ETH net exposure from positions
     const ethPosition = assetPositions.find((pos: any) => pos.position.coin === 'ETH');
-    
     const ethExposure = ethPosition ? parseFloat(ethPosition.position.szi) : 0;
     
     // Calculate total leverage
@@ -382,8 +459,19 @@ export const hyperliquidAPI = {
     const totalValueUsd = navUsd + parseFloat(marginSummary.totalNtlPos);
     const totalValueEth = totalValueUsd / ethPrice;
     
-    // Calculate unrealized PnL
+    // Calculate unrealized PnL using current market prices
     const totalUnrealizedPnl = assetPositions.reduce((sum: number, pos: any) => {
+      const currentPrice = currentPrices[pos.position.coin];
+      const entryPrice = parseFloat(pos.position.entryPx);
+      const positionSize = parseFloat(pos.position.szi);
+      
+      if (currentPrice && entryPrice && positionSize) {
+        // Calculate PnL based on current market price vs entry price
+        const pnl = positionSize * (currentPrice - entryPrice);
+        return sum + pnl;
+      }
+      
+      // Fallback to API provided unrealized PnL
       return sum + parseFloat(pos.position.unrealizedPnl || '0');
     }, 0);
     
@@ -420,7 +508,9 @@ export const hyperliquidAPI = {
         current: ethPrice,
         dailyChange: 0,
         dailyChangePercent: 0
-      }
+      },
+      // Add current prices for all positions
+      currentPrices: currentPrices
     };
   },
 
@@ -575,7 +665,7 @@ export const hyperliquidAPI = {
         marketAPI.getETHPrice()
       ]);
       
-      const basicMetrics = hyperliquidAPI.transformVaultData(vaultState, ethPriceData.current);
+      const basicMetrics = await hyperliquidAPI.transformVaultData(vaultState, ethPriceData.current);
       const portfolioPerformance = hyperliquidAPI.calculatePortfolioPerformance(vaultDetails, vaultState);
       const riskMetrics = hyperliquidAPI.calculateRiskMetrics(vaultState, vaultDetails);
       const topDepositors = hyperliquidAPI.getTopDepositors(vaultDetails);
@@ -604,7 +694,7 @@ export const vaultAPI = {
         marketAPI.getETHPrice()
       ]);
       
-      return hyperliquidAPI.transformVaultData(vaultState, ethPriceData.current);
+      return await hyperliquidAPI.transformVaultData(vaultState, ethPriceData.current);
     } catch (error) {
       console.error('Error fetching vault metrics:', error);
       throw error;

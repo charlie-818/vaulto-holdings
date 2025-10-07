@@ -11,7 +11,8 @@ const VAULT_ADDRESS = '0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a';
 
 // Simple cache for API responses
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 60000; // 60 seconds - cache duration for yfinance data
+const CACHE_DURATION = 60000; // 60 seconds - cache duration for most data
+const PRICE_CACHE_DURATION = 30000; // 30 seconds - shorter cache for price data to ensure fresh updates
 
 // Performance optimizations
 const CONNECTION_TIMEOUT = 8000; // Reduced timeout for faster failure detection
@@ -760,9 +761,12 @@ export const marketAPI = {
   // Fetch price using multiple reliable sources with fallbacks
   fetchPriceWithFallbacks: async (coin: 'ETH' | 'BTC'): Promise<{ current: number; dailyChangePercent: number }> => {
     const cacheKey = `price_${coin.toLowerCase()}`;
-    const cached = getCachedData(cacheKey);
-    if (cached && validatePriceData(cached, coin)) {
-      return cached;
+    
+    // Check cache with shorter duration for price data
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && validatePriceData(cached.data, coin)) {
+      console.log(`Using cached ${coin} price (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
+      return cached.data;
     }
 
     // Default fallback prices
@@ -772,9 +776,42 @@ export const marketAPI = {
     };
 
     const sources = [
-      // Primary: CoinGecko via allorigins CORS proxy
+      // Primary: Binance API (no CORS, most reliable)
       async () => {
-        console.log(`Fetching ${coin} price from CoinGecko via CORS proxy...`);
+        console.log(`[Source 1] Fetching ${coin} price from Binance...`);
+        const symbol = coin === 'ETH' ? 'ETHUSDT' : 'BTCUSDT';
+        
+        const tickerResponse = await fetch(
+          `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!tickerResponse.ok) {
+          throw new Error(`Binance API returned ${tickerResponse.status}`);
+        }
+        
+        const tickerData = await tickerResponse.json();
+        console.log(`Binance ${coin} data:`, { 
+          price: tickerData.lastPrice, 
+          change: tickerData.priceChangePercent 
+        });
+        
+        const result = {
+          current: parseFloat(tickerData.lastPrice),
+          dailyChangePercent: parseFloat(tickerData.priceChangePercent)
+        };
+        
+        console.log(`✓ Binance ${coin} result:`, result);
+        return result;
+      },
+      // Fallback 1: CoinGecko via allorigins CORS proxy
+      async () => {
+        console.log(`[Source 2] Fetching ${coin} price from CoinGecko via CORS proxy...`);
         const coinId = coin === 'ETH' ? 'ethereum' : 'bitcoin';
         const targetUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`;
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
@@ -798,45 +835,23 @@ export const marketAPI = {
           throw new Error('Invalid data structure from CoinGecko');
         }
         
-        return {
+        console.log(`CoinGecko ${coin} data:`, coinData);
+        
+        const result = {
           current: coinData.usd,
           dailyChangePercent: coinData.usd_24h_change || 0
         };
+        
+        console.log(`✓ CoinGecko ${coin} result:`, result);
+        return result;
       },
-      // Fallback 1: Binance API (no CORS restrictions)
+      // Fallback 2: Kraken API (no CORS restrictions)
       async () => {
-        console.log(`Fetching ${coin} price from Binance...`);
-        const symbol = coin === 'ETH' ? 'ETHUSDT' : 'BTCUSDT';
-        
-        // Get current price
-        const tickerResponse = await fetch(
-          `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`,
-          {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json'
-            }
-          }
-        );
-        
-        if (!tickerResponse.ok) {
-          throw new Error(`Binance API returned ${tickerResponse.status}`);
-        }
-        
-        const tickerData = await tickerResponse.json();
-        
-        return {
-          current: parseFloat(tickerData.lastPrice),
-          dailyChangePercent: parseFloat(tickerData.priceChangePercent)
-        };
-      },
-      // Fallback 2: Coinbase API (no CORS restrictions)
-      async () => {
-        console.log(`Fetching ${coin} price from Coinbase...`);
-        const pair = coin === 'ETH' ? 'ETH-USD' : 'BTC-USD';
+        console.log(`[Source 3] Fetching ${coin} price from Kraken...`);
+        const pair = coin === 'ETH' ? 'XETHZUSD' : 'XXBTZUSD';
         
         const response = await fetch(
-          `https://api.coinbase.com/v2/prices/${pair}/spot`,
+          `https://api.kraken.com/0/public/Ticker?pair=${pair}`,
           {
             method: 'GET',
             headers: {
@@ -846,22 +861,108 @@ export const marketAPI = {
         );
         
         if (!response.ok) {
-          throw new Error(`Coinbase API returned ${response.status}`);
+          throw new Error(`Kraken API returned ${response.status}`);
         }
         
         const data = await response.json();
-        const currentPrice = parseFloat(data.data.amount);
         
-        // Coinbase free API doesn't provide 24h change
-        // Using 0 as placeholder - in production, would need to calculate from historical data
+        if (data.error && data.error.length > 0) {
+          throw new Error(`Kraken API error: ${data.error.join(', ')}`);
+        }
+        
+        const pairData = data.result[pair];
+        if (!pairData) {
+          throw new Error('Invalid data structure from Kraken');
+        }
+        
+        const currentPrice = parseFloat(pairData.c[0]); // Current price
+        const openPrice = parseFloat(pairData.o); // Today's opening price
+        const dailyChangePercent = ((currentPrice - openPrice) / openPrice) * 100;
+        
+        console.log(`Kraken ${coin} data:`, { 
+          current: currentPrice, 
+          open: openPrice,
+          change: dailyChangePercent 
+        });
+        
+        const result = {
+          current: currentPrice,
+          dailyChangePercent: dailyChangePercent
+        };
+        
+        console.log(`✓ Kraken ${coin} result:`, result);
+        return result;
+      },
+      // Fallback 3: Coinbase API (no CORS restrictions)
+      async () => {
+        console.log(`[Source 4] Fetching ${coin} price from Coinbase...`);
+        const pair = coin === 'ETH' ? 'ETH-USD' : 'BTC-USD';
+        
+        // Get current price
+        const spotResponse = await fetch(
+          `https://api.coinbase.com/v2/prices/${pair}/spot`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!spotResponse.ok) {
+          throw new Error(`Coinbase API returned ${spotResponse.status}`);
+        }
+        
+        const spotData = await spotResponse.json();
+        const currentPrice = parseFloat(spotData.data.amount);
+        
+        // Try to get 24h ago price for percentage calculation
+        try {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split('T')[0];
+          
+          const historicResponse = await fetch(
+            `https://api.coinbase.com/v2/prices/${pair}/spot?date=${yesterdayStr}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            }
+          );
+          
+          if (historicResponse.ok) {
+            const historicData = await historicResponse.json();
+            const yesterdayPrice = parseFloat(historicData.data.amount);
+            const dailyChangePercent = ((currentPrice - yesterdayPrice) / yesterdayPrice) * 100;
+            
+            console.log(`Coinbase ${coin} data:`, { 
+              current: currentPrice, 
+              yesterday: yesterdayPrice,
+              change: dailyChangePercent 
+            });
+            
+            const result = {
+              current: currentPrice,
+              dailyChangePercent: dailyChangePercent
+            };
+            
+            console.log(`✓ Coinbase ${coin} result:`, result);
+            return result;
+          }
+        } catch (historicError) {
+          console.log(`Could not fetch historic price from Coinbase, using 0% change`);
+        }
+        
         return {
           current: currentPrice,
-          dailyChangePercent: 0 // Note: Would need pro API or historical data for accurate 24h change
+          dailyChangePercent: 0
         };
       },
-      // Fallback 3: Use cached/default data
+      // Fallback 4: Use cached/default data
       async () => {
-        console.log(`Using fallback price data for ${coin}`);
+        console.log(`[Source 5] Using fallback price data for ${coin}`);
         return fallbackPrices[coin];
       }
     ];
@@ -872,16 +973,20 @@ export const marketAPI = {
         console.log(`Trying price source ${i + 1} for ${coin}...`);
         const result = await sources[i]();
         
+        console.log(`Validating ${coin} price data from source ${i + 1}:`, result);
+        
         if (validatePriceData(result, coin)) {
-          console.log(`Successfully fetched ${coin} price from source ${i + 1}: $${result.current} (${result.dailyChangePercent.toFixed(2)}%)`);
+          console.log(`✅ Successfully fetched ${coin} price from source ${i + 1}: $${result.current.toLocaleString()} (${result.dailyChangePercent >= 0 ? '+' : ''}${result.dailyChangePercent.toFixed(2)}%)`);
           setCachedData(cacheKey, result);
           return result;
+        } else {
+          console.warn(`❌ Validation failed for ${coin} from source ${i + 1}`);
         }
       } catch (error) {
-        console.error(`Price source ${i + 1} failed for ${coin}:`, error);
+        console.error(`❌ Price source ${i + 1} failed for ${coin}:`, error);
         if (i === sources.length - 1) {
           // Return fallback data instead of throwing error
-          console.log(`All price sources failed for ${coin}, using fallback data`);
+          console.log(`⚠️ All price sources failed for ${coin}, using fallback data`);
           const fallback = fallbackPrices[coin];
           setCachedData(cacheKey, fallback);
           return fallback;
@@ -890,6 +995,7 @@ export const marketAPI = {
     }
 
     // Final fallback
+    console.log(`⚠️ Returning final fallback for ${coin}`);
     const fallback = fallbackPrices[coin];
     setCachedData(cacheKey, fallback);
     return fallback;
@@ -897,9 +1003,12 @@ export const marketAPI = {
   // Get ETH price with robust fallback system
   getETHPrice: async (): Promise<ETHPriceData> => {
     const cacheKey = 'eth_price';
-    const cached = getCachedData(cacheKey);
-    if (cached && validatePriceData(cached, 'ETH')) {
-      return cached;
+    
+    // Check cache with shorter duration for price data
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && validatePriceData(cached.data, 'ETH')) {
+      console.log(`Using cached ETH price (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
+      return cached.data;
     }
 
     try {
@@ -925,9 +1034,12 @@ export const marketAPI = {
   // Get BTC price with robust fallback system
   getBTCPrice: async (): Promise<{ current: number; dailyChangePercent: number }> => {
     const cacheKey = 'btc_price';
-    const cached = getCachedData(cacheKey);
-    if (cached && validatePriceData(cached, 'BTC')) {
-      return cached;
+    
+    // Check cache with shorter duration for price data
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && validatePriceData(cached.data, 'BTC')) {
+      console.log(`Using cached BTC price (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
+      return cached.data;
     }
 
     try {
@@ -951,9 +1063,13 @@ export const marketAPI = {
   // Get both ETH and BTC prices efficiently using reliable sources
   getCryptoPrices: async (): Promise<{ eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } }> => {
     const cacheKey = 'crypto_prices_batch';
-    const cached = getCachedData(cacheKey);
-    if (cached && validatePriceData(cached.eth, 'ETH') && validatePriceData(cached.btc, 'BTC')) {
-      return cached;
+    
+    // Check cache with shorter duration for price data
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && 
+        validatePriceData(cached.data.eth, 'ETH') && validatePriceData(cached.data.btc, 'BTC')) {
+      console.log(`Using cached crypto prices (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
+      return cached.data;
     }
 
     try {
@@ -968,12 +1084,13 @@ export const marketAPI = {
       
       const result = { eth: ethPrice, btc: btcPrice };
       setCachedData(cacheKey, result);
+      console.log('✅ Crypto prices fetched successfully:', result);
       return result;
       
     } catch (error) {
-      console.error('Crypto price fetch failed:', error);
+      console.error('❌ Crypto price fetch failed:', error);
       // Return fallback data instead of throwing error
-      console.log('Using fallback crypto prices due to fetch failure');
+      console.log('⚠️ Using fallback crypto prices due to fetch failure');
       const fallbackResult = {
         eth: {
           current: 2450,
@@ -1034,7 +1151,7 @@ export const marketAPI = {
 
   // Check if price data is stale
   isPriceDataStale: () => {
-    return isDataStale('crypto_prices_batch', 30000); // 30 seconds for price data
+    return isDataStale('crypto_prices_batch', PRICE_CACHE_DURATION); // Use consistent price cache duration
   },
 
   // Get ETH historical price data for performance chart

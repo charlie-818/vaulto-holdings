@@ -829,3 +829,55 @@
     padding: 1rem;
   }
 }
+
+/* New comprehensive components spacing */
+.vault-details,
+.top-depositors,
+.portfolio-performance,
+.risk-metrics {
+  margin-bottom: 2rem;
+}
+
+/* Ensure proper spacing between sections */
+.primary-metrics {
+  margin-bottom: 2rem;
+}
+
+.performance-section {
+  margin-bottom: 2rem;
+}
+
+.positions-section {
+  margin-bottom: 2rem;
+}
+
+/* Responsive adjustments for new components */
+@media (max-width: 768px) {
+  .vault-details,
+  .top-depositors,
+  .portfolio-performance,
+  .risk-metrics {
+    margin-bottom: 1.5rem;
+  }
+  
+  .primary-metrics,
+  .performance-section,
+  .positions-section {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vault-details,
+  .top-depositors,
+  .portfolio-performance,
+  .risk-metrics {
+    margin-bottom: 1rem;
+  }
+  
+  .primary-metrics,
+  .performance-section,
+  .positions-section {
+    margin-bottom: 1rem;
+  }
+}

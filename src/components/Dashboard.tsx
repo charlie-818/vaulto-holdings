@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { VaultMetrics, PerformanceMetrics, DataSource, ETHPriceData } from '../types';
-import { mockVaultMetrics, mockPerformanceMetrics, mockDataSources } from '../data/mockData';
+import { VaultMetrics, DataSource, ComprehensiveVaultMetrics } from '../types';
+import { mockVaultMetrics, mockDataSources } from '../data/mockData';
 import { marketAPI, hyperliquidAPI } from '../services/api';
 import Header from './Header';
 import MetricCard from './MetricCard';
-import ETHPriceChart from './ETHPriceChart';
 import Footer from './Footer';
 import LoadingSpinner from './LoadingSpinner';
+import TopDepositors from './TopDepositors';
 import './Dashboard.css';
 
 interface Position {
@@ -23,70 +23,174 @@ interface Position {
 
 const Dashboard: React.FC = () => {
   const [vaultMetrics, setVaultMetrics] = useState<VaultMetrics>(mockVaultMetrics);
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>(mockPerformanceMetrics);
+  const [comprehensiveMetrics, setComprehensiveMetrics] = useState<ComprehensiveVaultMetrics | null>(null);
 
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
-  const [ethPriceData, setEthPriceData] = useState<ETHPriceData | null>(null);
-  const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
+  // const [ethPriceData, setEthPriceData] = useState<ETHPriceData | null>(null);
+  // const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch real vault data from Hyperliquid
+  // Fetch comprehensive vault data from Hyperliquid
   const fetchVaultData = async () => {
     try {
       setLoadingStage('fetching-vault');
       
-      // Fetch vault state first
-      const vaultState = await hyperliquidAPI.getVaultState();
+      // Fetch comprehensive vault metrics with error handling
+      let comprehensiveData: ComprehensiveVaultMetrics | null = null;
+      try {
+        comprehensiveData = await hyperliquidAPI.getComprehensiveVaultMetrics();
+        setComprehensiveMetrics(comprehensiveData);
+      } catch (vaultError) {
+        console.error('Failed to fetch vault data:', vaultError);
+        // Create mock comprehensive data to prevent crashes
+        comprehensiveData = {
+          ...mockVaultMetrics,
+          vaultDetails: {
+            name: 'Vaulto Holdings',
+            vaultAddress: '0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a',
+            leader: '0x0000000000000000000000000000000000000000',
+            description: 'Community-owned vault providing liquidity to Hyperliquid through multiple market making strategies.',
+            portfolio: [],
+            apr: 0.36,
+            followerState: null,
+            leaderFraction: 0.0008,
+            leaderCommission: 0,
+            followers: [],
+            maxDistributable: 0,
+            maxWithdrawable: 0,
+            isClosed: false,
+            allowDeposits: true,
+            alwaysCloseOnWithdraw: false
+          },
+          topDepositors: [],
+          portfolioPerformance: {
+            totalReturn: 0,
+            totalReturnPercent: 0,
+            dailyReturn: 0,
+            dailyReturnPercent: 0,
+            weeklyReturn: 0,
+            weeklyReturnPercent: 0,
+            monthlyReturn: 0,
+            monthlyReturnPercent: 0,
+            allTimeReturn: 0,
+            allTimeReturnPercent: 0,
+            sharpeRatio: 0,
+            maxDrawdown: 0,
+            volatility: 0
+          },
+          riskMetrics: {
+            var95: 0,
+            var99: 0,
+            maxLeverage: 0,
+            currentLeverage: 0,
+            liquidationRisk: 0,
+            concentrationRisk: 0,
+            correlationRisk: 0
+          }
+        };
+        setComprehensiveMetrics(comprehensiveData);
+      }
       
       setLoadingStage('fetching-prices');
       
       // Try to fetch crypto prices with robust fallback system
-      let cryptoPrices: { eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } } | null = null;
+      let cryptoPrices: { eth: { current: number; dailyChangePercent: number }; btc: { current: number; dailyChangePercent: number } } | null = null;
       try {
         cryptoPrices = await marketAPI.getCryptoPrices();
         console.log('Fetched crypto prices successfully:', cryptoPrices);
       } catch (priceError) {
         console.error('Failed to fetch crypto prices:', priceError);
         // Don't set price data if fetch fails - let UI show error state
-        setEthPriceData(null);
-        setBtcPriceData(null);
+        // setEthPriceData(null);
+        // setBtcPriceData(null);
       }
       
       setLoadingStage('calculating');
       
-      // Use ETH price from vault state if crypto prices failed
-      const ethPrice = cryptoPrices?.eth.current || 2450; // Fallback for calculations only
       
-      const vaultData = hyperliquidAPI.transformVaultData(vaultState, ethPrice);
-      const performanceData = hyperliquidAPI.calculatePerformanceMetrics(vaultState, ethPrice);
-      
-      setVaultMetrics(vaultData);
-      setPerformanceMetrics(performanceData);
+      // Set basic metrics from comprehensive data (with fallback)
+      if (comprehensiveData) {
+        console.log('Comprehensive data portfolio performance:', comprehensiveData.portfolioPerformance);
+        setVaultMetrics({
+          ethNetExposure: comprehensiveData.ethNetExposure,
+          totalLeverage: comprehensiveData.totalLeverage,
+          liquidationPrice: comprehensiveData.liquidationPrice,
+          vaultNav: comprehensiveData.vaultNav,
+          totalVaultValue: comprehensiveData.totalVaultValue,
+          ethPrice: comprehensiveData.ethPrice
+        });
+        
+      }
       
       // Only set price data if fetch was successful
       if (cryptoPrices) {
-        setEthPriceData(cryptoPrices.eth);
-        setBtcPriceData(cryptoPrices.btc);
+        // setEthPriceData(cryptoPrices.eth);
+        // setBtcPriceData(cryptoPrices.btc);
       }
       
       // Extract positions from vault state with accurate current prices
-      const positionData = vaultState.assetPositions.map((pos: any) => ({
-        coin: pos.position.coin,
-        size: parseFloat(pos.position.szi),
-        entryPrice: parseFloat(pos.position.entryPx),
-        currentPrice: pos.position.coin === 'ETH' ? (cryptoPrices?.eth.current || 2450) : 
-                     pos.position.coin === 'BTC' ? (cryptoPrices?.btc.current || 112000) : 0,
-        unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
-        leverage: pos.position.leverage.value,
-        liquidationPrice: parseFloat(pos.position.liquidationPx),
-        marginUsed: parseFloat(pos.position.marginUsed),
-        returnOnEquity: parseFloat(pos.position.returnOnEquity)
-      }));
-      
-      setPositions(positionData);
+      try {
+        const vaultState = await hyperliquidAPI.getVaultState();
+        
+        // Get current prices for all assets in positions
+        const getCurrentPrice = async (coin: string) => {
+          // Try to get price from Hyperliquid market data first
+          try {
+            const marketMeta = await hyperliquidAPI.getMarketMeta();
+            const asset = marketMeta.assets?.find((a: any) => a.name === coin);
+            if (asset && asset.price) {
+              return parseFloat(asset.price);
+            }
+          } catch (error) {
+            console.log(`Failed to get ${coin} price from Hyperliquid, using fallback`);
+          }
+          
+          // Fallback to known crypto prices
+          if (coin === 'ETH') {
+            return cryptoPrices?.eth.current || 2450;
+          } else if (coin === 'BTC') {
+            return cryptoPrices?.btc.current || 112000;
+          } else {
+            // For other assets, try to get price from CoinGecko or use entry price as fallback
+            try {
+              const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin.toLowerCase()}&vs_currencies=usd`);
+              if (response.ok) {
+                const data = await response.json();
+                return data[coin.toLowerCase()]?.usd || 0;
+              }
+            } catch (error) {
+              console.log(`Failed to get ${coin} price from CoinGecko`);
+            }
+            return 0; // Return 0 if no price can be found
+          }
+        };
+        
+        // Process positions with proper price fetching
+        const positionData = await Promise.all(
+          vaultState.assetPositions.map(async (pos: any) => {
+            const currentPrice = await getCurrentPrice(pos.position.coin);
+            return {
+              coin: pos.position.coin,
+              size: parseFloat(pos.position.szi),
+              entryPrice: parseFloat(pos.position.entryPx),
+              currentPrice: currentPrice || parseFloat(pos.position.entryPx), // Use entry price as fallback
+              unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
+              leverage: pos.position.leverage.value,
+              liquidationPrice: parseFloat(pos.position.liquidationPx),
+              marginUsed: parseFloat(pos.position.marginUsed),
+              returnOnEquity: parseFloat(pos.position.returnOnEquity)
+            };
+          })
+        );
+        
+        setPositions(positionData);
+      } catch (positionError) {
+        console.error('Failed to fetch positions:', positionError);
+        setPositions([]);
+      }
       
       // Update data sources with real-time timestamps
       setDataSources([
@@ -158,24 +262,87 @@ const Dashboard: React.FC = () => {
       } else {
         // Only fetch vault data if prices are fresh
         try {
-          const vaultState = await hyperliquidAPI.getVaultState();
+          const comprehensiveData = await hyperliquidAPI.getComprehensiveVaultMetrics();
+          setComprehensiveMetrics(comprehensiveData);
           
           // Try to fetch crypto prices
           try {
             const cryptoPrices = await marketAPI.getCryptoPrices();
-            const vaultData = hyperliquidAPI.transformVaultData(vaultState, cryptoPrices.eth.current);
-            const performanceData = hyperliquidAPI.calculatePerformanceMetrics(vaultState, cryptoPrices.eth.current);
             
-            setVaultMetrics(vaultData);
-            setPerformanceMetrics(performanceData);
-            setEthPriceData(cryptoPrices.eth);
-            setBtcPriceData(cryptoPrices.btc);
+            // Update basic metrics
+            setVaultMetrics({
+              ethNetExposure: comprehensiveData.ethNetExposure,
+              totalLeverage: comprehensiveData.totalLeverage,
+              liquidationPrice: comprehensiveData.liquidationPrice,
+              vaultNav: comprehensiveData.vaultNav,
+              totalVaultValue: comprehensiveData.totalVaultValue,
+              ethPrice: comprehensiveData.ethPrice
+            });
+            
+            
+            // setEthPriceData(cryptoPrices.eth);
+            // setBtcPriceData(cryptoPrices.btc);
             setError(null);
+            
+            // Update positions with fresh prices
+            try {
+              const vaultState = await hyperliquidAPI.getVaultState();
+              
+              const getCurrentPrice = async (coin: string) => {
+                try {
+                  const marketMeta = await hyperliquidAPI.getMarketMeta();
+                  const asset = marketMeta.assets?.find((a: any) => a.name === coin);
+                  if (asset && asset.price) {
+                    return parseFloat(asset.price);
+                  }
+                } catch (error) {
+                  console.log(`Failed to get ${coin} price from Hyperliquid, using fallback`);
+                }
+                
+                if (coin === 'ETH') {
+                  return cryptoPrices?.eth.current || 2450;
+                } else if (coin === 'BTC') {
+                  return cryptoPrices?.btc.current || 112000;
+                } else {
+                  try {
+                    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin.toLowerCase()}&vs_currencies=usd`);
+                    if (response.ok) {
+                      const data = await response.json();
+                      return data[coin.toLowerCase()]?.usd || 0;
+                    }
+                  } catch (error) {
+                    console.log(`Failed to get ${coin} price from CoinGecko`);
+                  }
+                  return 0;
+                }
+              };
+              
+              const positionData = await Promise.all(
+                vaultState.assetPositions.map(async (pos: any) => {
+                  const currentPrice = await getCurrentPrice(pos.position.coin);
+                  return {
+                    coin: pos.position.coin,
+                    size: parseFloat(pos.position.szi),
+                    entryPrice: parseFloat(pos.position.entryPx),
+                    currentPrice: currentPrice || parseFloat(pos.position.entryPx),
+                    unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
+                    leverage: pos.position.leverage.value,
+                    liquidationPrice: parseFloat(pos.position.liquidationPx),
+                    marginUsed: parseFloat(pos.position.marginUsed),
+                    returnOnEquity: parseFloat(pos.position.returnOnEquity)
+                  };
+                })
+              );
+              
+              setPositions(positionData);
+            } catch (positionError) {
+              console.error('Failed to update positions in periodic update:', positionError);
+            }
           } catch (priceError) {
             console.error('Failed to fetch crypto prices in periodic update:', priceError);
             // Keep existing vault data but clear price data
-            setEthPriceData(null);
-            setBtcPriceData(null);
+            // setEthPriceData(null);
+            // setBtcPriceData(null);
             setError('Price data unavailable. Vault data updated.');
           }
         } catch (error) {
@@ -241,45 +408,37 @@ const Dashboard: React.FC = () => {
             <div className="hero-content">
               <div className="hero-prices">
                 <div className="hero-price eth-price-box">
-                  <div className="price-label">ETH Price</div>
-                  {ethPriceData ? (
+                  <div className="price-label">30D PnL</div>
+                  {comprehensiveMetrics?.portfolioPerformance?.monthlyReturn !== undefined ? (
                     <>
-                      <div className="price-value">${Math.round(ethPriceData.current).toLocaleString()}</div>
-                      <div className={`price-change ${ethPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {ethPriceData.dailyChangePercent >= 0 ? '+' : ''}{ethPriceData.dailyChangePercent.toFixed(2)}%
-                      </div>
+                      <div className="price-value">${comprehensiveMetrics.portfolioPerformance.monthlyReturn.toFixed(2)}</div>
                     </>
                   ) : (
                     <>
-                      <div className="price-value price-error">Price Unavailable</div>
-                      <div className="price-change price-error">Check Connection</div>
+                      <div className="price-value price-error">Loading...</div>
                     </>
                   )}
                 </div>
                 <div className="hero-price btc-price-box">
-                  <div className="price-label">BTC Price</div>
-                  {btcPriceData ? (
+                  <div className="price-label">All-Time PnL</div>
+                  {comprehensiveMetrics?.portfolioPerformance?.allTimeReturn !== undefined ? (
                     <>
-                      <div className="price-value">${Math.round(btcPriceData.current).toLocaleString()}</div>
-                      <div className={`price-change ${btcPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {btcPriceData.dailyChangePercent >= 0 ? '+' : ''}{btcPriceData.dailyChangePercent.toFixed(2)}%
-                      </div>
+                      <div className="price-value">${comprehensiveMetrics.portfolioPerformance.allTimeReturn.toFixed(2)}</div>
                     </>
                   ) : (
                     <>
-                      <div className="price-value price-error">Price Unavailable</div>
-                      <div className="price-change price-error">Check Connection</div>
+                      <div className="price-value price-error">Loading...</div>
                     </>
                   )}
                 </div>
 
               </div>
               <div className="vault-info">
-                <div className="vault-label">Vaulto Holdings Vault</div>
+                <div className="vault-label">Vaulto Holdings</div>
                 <div className="vault-address">
                   <span className="address-text">0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a</span>
-                  <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Vaulto Holdings Vault Address">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Vaulto Holdings Address">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
                       <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                     </svg>
                   </button>
@@ -303,40 +462,32 @@ const Dashboard: React.FC = () => {
             </div>
           </section>
 
+
           {/* Primary Metrics Grid */}
           <section id="metrics" className="primary-metrics">
             <div className="metrics-grid">
               <MetricCard
-                title="ETH Net Exposure"
-                value={`${vaultMetrics.ethNetExposure.value.toFixed(2)}x ETH`}
-                change={{
-                  value: vaultMetrics.ethNetExposure.dailyChange,
-                  percent: vaultMetrics.ethNetExposure.dailyChangePercent,
-                  period: '24h'
-                }}
-                tooltip="The total leveraged exposure to Ethereum across all positions. This represents the net directional bet on ETH price movements, combining long and short positions. A value of 2.15x means the vault has 2.15 times the vault's capital exposed to ETH price movements."
-              />
-              
-              <MetricCard
-                title="Liquidation Price"
-                value={`$${vaultMetrics.liquidationPrice.value.toFixed(2)}`}
-                subtitle={`${((vaultMetrics.liquidationPrice.distance / vaultMetrics.liquidationPrice.currentEthPrice) * 100).toFixed(2)}% from current price`}
-                isDanger={vaultMetrics.liquidationPrice.isDangerZone}
-                tooltip="The ETH price at which the vault's leveraged positions would be automatically liquidated by the exchange. This is calculated based on the vault's current margin and leverage. When ETH price approaches this level, the card turns red to indicate increased risk. The percentage shows how close the current price is to liquidation."
+                title="30D APR"
+                value={`${comprehensiveMetrics?.vaultDetails?.apr ? (comprehensiveMetrics.vaultDetails.apr * 100).toFixed(2) : '0.00'}%`}
+                tooltip="30-Day Annual Percentage Rate (APR) represents the expected annual return on investment for vault depositors based on the last 30 days of performance. This is calculated based on the vault's recent historical performance and current strategy."
               />
               
               <MetricCard
                 title="Vault NAV"
                 value={`$${vaultMetrics.vaultNav.usd.toFixed(2)}`}
-                subtitle={`${vaultMetrics.vaultNav.eth.toFixed(2)} ETH`}
-                tooltip="Net Asset Value (NAV) represents the total value of the vault's assets minus liabilities. This is the fundamental measure of the vault's worth, calculated by summing all positions, cash, and other assets, then subtracting any outstanding debts or obligations. The NAV is displayed in both USD and ETH equivalent."
+                tooltip="Net Asset Value (NAV) represents the total value of the vault's assets minus liabilities. This is the fundamental measure of the vault's worth, calculated by summing all positions, cash, and other assets, then subtracting any outstanding debts or obligations."
               />
               
               <MetricCard
                 title="Total Vault Value"
                 value={`$${vaultMetrics.totalVaultValue.usd.toFixed(2)}`}
-                subtitle={`${vaultMetrics.totalVaultValue.eth.toFixed(2)} ETH`}
                 tooltip="Total Vault Value represents the gross value of all assets under management, including leveraged positions and derivatives. Unlike NAV, this includes the full notional value of leveraged positions. For example, if the vault has $10,000 in capital with 2x leverage on ETH, the total vault value would be $20,000, while NAV would be $10,000 plus any unrealized gains or losses."
+              />
+              
+              <MetricCard
+                title="Leader Fraction"
+                value={`${comprehensiveMetrics?.vaultDetails?.leaderFraction ? (comprehensiveMetrics.vaultDetails.leaderFraction * 100).toFixed(2) : '0.00'}%`}
+                tooltip="The leader fraction represents the percentage of the vault's total value that belongs to the vault leader. This shows how much of the vault's capital is owned by the leader versus depositors."
               />
             </div>
           </section>
@@ -368,8 +519,8 @@ const Dashboard: React.FC = () => {
                         <span className="value">{position.leverage.toFixed(2)}x</span>
                       </div>
                       <div className="position-row">
-                        <span className="label">Liquidation Price:</span>
-                        <span className="value">${position.liquidationPrice.toFixed(2)}</span>
+                        <span className="label">Current Price:</span>
+                        <span className="value">${position.currentPrice.toFixed(2)}</span>
                       </div>
                       <div className="position-row">
                         <span className="label">ROE:</span>
@@ -384,36 +535,15 @@ const Dashboard: React.FC = () => {
             </section>
           )}
 
-          {/* Performance Section */}
-          <section id="performance" className="performance-section">
-            <div className="performance-grid">
-              <div className="performance-metrics">
-                <div className="performance-cards">
-                  <MetricCard
-                    title="Total Return"
-                    value={`${performanceMetrics.inception.returnPercent.toFixed(2)}%`}
-                    subtitle={`$${performanceMetrics.inception.returnUsd.toFixed(2)}`}
-                  />
-                  <MetricCard
-                    title="30-Day Return"
-                    value={`${performanceMetrics.monthly.returnPercent.toFixed(2)}%`}
-                    subtitle={`$${performanceMetrics.monthly.returnUsd.toFixed(2)}`}
-                  />
-                  <MetricCard
-                    title="Daily Return"
-                    value={`${performanceMetrics.daily.returnPercent.toFixed(2)}%`}
-                    subtitle={`$${performanceMetrics.daily.returnUsd.toFixed(2)}`}
-                  />
-                </div>
-              </div>
-              
-              {/* ETH Price Chart - Inline with performance metrics */}
-              <div className="chart-wrapper">
-                <ETHPriceChart />
-              </div>
-            </div>
-          </section>
 
+
+          {/* Top Depositors */}
+          {comprehensiveMetrics && comprehensiveMetrics.topDepositors.length > 0 && (
+            <TopDepositors 
+              depositors={comprehensiveMetrics.topDepositors} 
+              leaderAddress={comprehensiveMetrics.vaultDetails.leader}
+            />
+          )}
 
         </div>
       </main>

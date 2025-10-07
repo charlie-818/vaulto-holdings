@@ -29,7 +29,7 @@
 
 /* Positions Section */
 .positions-section {
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-title {
@@ -42,9 +42,21 @@
 
 .positions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 1400px) {
+  .positions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .positions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .position-card {
@@ -129,7 +141,7 @@
 .hero-section {
   background-color: var(--background-color);
   padding: 3rem 1rem;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
@@ -445,7 +457,7 @@
 }
 
 .primary-metrics {
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
   padding: 0 1rem;
 }
 

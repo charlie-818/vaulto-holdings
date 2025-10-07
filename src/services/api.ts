@@ -772,38 +772,94 @@ export const marketAPI = {
     };
 
     const sources = [
-      // Primary: CoinGecko with CORS proxy
+      // Primary: CoinGecko via allorigins CORS proxy
       async () => {
-        try {
-          // Use a CORS proxy for development
-          const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-          const targetUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coin === 'ETH' ? 'ethereum' : 'bitcoin'}&vs_currencies=usd&include_24hr_change=true`;
-          const response = await fetch(proxyUrl + targetUrl, {
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-          if (!response.ok) throw new Error(`CoinGecko failed: ${response.status}`);
-          const data = await response.json();
-          const coinData = data[coin === 'ETH' ? 'ethereum' : 'bitcoin'];
-          return {
-            current: coinData.usd,
-            dailyChangePercent: coinData.usd_24h_change || 0
-          };
-        } catch (error) {
-          console.log('CoinGecko with proxy failed, trying direct...');
-          // Try direct fetch as fallback
-          const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin === 'ETH' ? 'ethereum' : 'bitcoin'}&vs_currencies=usd&include_24hr_change=true`);
-          if (!response.ok) throw new Error(`CoinGecko direct failed: ${response.status}`);
-          const data = await response.json();
-          const coinData = data[coin === 'ETH' ? 'ethereum' : 'bitcoin'];
-          return {
-            current: coinData.usd,
-            dailyChangePercent: coinData.usd_24h_change || 0
-          };
+        console.log(`Fetching ${coin} price from CoinGecko via CORS proxy...`);
+        const coinId = coin === 'ETH' ? 'ethereum' : 'bitcoin';
+        const targetUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`CORS proxy returned ${response.status}`);
         }
+        
+        const proxyData = await response.json();
+        const data = JSON.parse(proxyData.contents);
+        const coinData = data[coinId];
+        
+        if (!coinData || !coinData.usd) {
+          throw new Error('Invalid data structure from CoinGecko');
+        }
+        
+        return {
+          current: coinData.usd,
+          dailyChangePercent: coinData.usd_24h_change || 0
+        };
       },
-      // Fallback: Use mock data for development
+      // Fallback 1: Binance API (no CORS restrictions)
+      async () => {
+        console.log(`Fetching ${coin} price from Binance...`);
+        const symbol = coin === 'ETH' ? 'ETHUSDT' : 'BTCUSDT';
+        
+        // Get current price
+        const tickerResponse = await fetch(
+          `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!tickerResponse.ok) {
+          throw new Error(`Binance API returned ${tickerResponse.status}`);
+        }
+        
+        const tickerData = await tickerResponse.json();
+        
+        return {
+          current: parseFloat(tickerData.lastPrice),
+          dailyChangePercent: parseFloat(tickerData.priceChangePercent)
+        };
+      },
+      // Fallback 2: Coinbase API (no CORS restrictions)
+      async () => {
+        console.log(`Fetching ${coin} price from Coinbase...`);
+        const pair = coin === 'ETH' ? 'ETH-USD' : 'BTC-USD';
+        
+        const response = await fetch(
+          `https://api.coinbase.com/v2/prices/${pair}/spot`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Coinbase API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const currentPrice = parseFloat(data.data.amount);
+        
+        // Coinbase free API doesn't provide 24h change
+        // Using 0 as placeholder - in production, would need to calculate from historical data
+        return {
+          current: currentPrice,
+          dailyChangePercent: 0 // Note: Would need pro API or historical data for accurate 24h change
+        };
+      },
+      // Fallback 3: Use cached/default data
       async () => {
         console.log(`Using fallback price data for ${coin}`);
         return fallbackPrices[coin];

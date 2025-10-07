@@ -26,8 +26,8 @@ const Dashboard: React.FC = () => {
   const [comprehensiveMetrics, setComprehensiveMetrics] = useState<ComprehensiveVaultMetrics | null>(null);
 
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
-  // const [ethPriceData, setEthPriceData] = useState<ETHPriceData | null>(null);
-  // const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
+  const [ethPriceData, setEthPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
+  const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
@@ -104,8 +104,8 @@ const Dashboard: React.FC = () => {
       } catch (priceError) {
         console.error('Failed to fetch crypto prices:', priceError);
         // Don't set price data if fetch fails - let UI show error state
-        // setEthPriceData(null);
-        // setBtcPriceData(null);
+        setEthPriceData(null);
+        setBtcPriceData(null);
       }
       
       setLoadingStage('calculating');
@@ -127,8 +127,8 @@ const Dashboard: React.FC = () => {
       
       // Only set price data if fetch was successful
       if (cryptoPrices) {
-        // setEthPriceData(cryptoPrices.eth);
-        // setBtcPriceData(cryptoPrices.btc);
+        setEthPriceData(cryptoPrices.eth);
+        setBtcPriceData(cryptoPrices.btc);
       }
       
       // Extract positions from vault state with accurate current prices
@@ -270,8 +270,8 @@ const Dashboard: React.FC = () => {
             });
             
             
-            // setEthPriceData(cryptoPrices.eth);
-            // setBtcPriceData(cryptoPrices.btc);
+            setEthPriceData(cryptoPrices.eth);
+            setBtcPriceData(cryptoPrices.btc);
             setError(null);
             
             // Update positions with fresh prices
@@ -331,8 +331,8 @@ const Dashboard: React.FC = () => {
           } catch (priceError) {
             console.error('Failed to fetch crypto prices in periodic update:', priceError);
             // Keep existing vault data but clear price data
-            // setEthPriceData(null);
-            // setBtcPriceData(null);
+            setEthPriceData(null);
+            setBtcPriceData(null);
             setError('Price data unavailable. Vault data updated.');
           }
         } catch (error) {
@@ -398,26 +398,34 @@ const Dashboard: React.FC = () => {
             <div className="hero-content">
               <div className="hero-prices">
                 <div className="hero-price eth-price-box">
-                  <div className="price-label">30D PnL</div>
-                  {comprehensiveMetrics?.portfolioPerformance?.monthlyReturn !== undefined ? (
+                  <div className="price-label">Ethereum (ETH)</div>
+                  {ethPriceData ? (
                     <>
-                      <div className="price-value">${comprehensiveMetrics.portfolioPerformance.monthlyReturn.toFixed(2)}</div>
+                      <div className="price-value">${Math.round(ethPriceData.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${ethPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {ethPriceData.dailyChangePercent >= 0 ? '+' : ''}{ethPriceData.dailyChangePercent.toFixed(2)}%
+                      </div>
                     </>
                   ) : (
                     <>
-                      <div className="price-value price-error">Loading...</div>
+                      <div className="price-value price-error">Price unavailable</div>
+                      <div className="price-change price-error">Check connection</div>
                     </>
                   )}
                 </div>
                 <div className="hero-price btc-price-box">
-                  <div className="price-label">All-Time PnL</div>
-                  {comprehensiveMetrics?.portfolioPerformance?.allTimeReturn !== undefined ? (
+                  <div className="price-label">Bitcoin (BTC)</div>
+                  {btcPriceData ? (
                     <>
-                      <div className="price-value">${comprehensiveMetrics.portfolioPerformance.allTimeReturn.toFixed(2)}</div>
+                      <div className="price-value">${Math.round(btcPriceData.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${btcPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {btcPriceData.dailyChangePercent >= 0 ? '+' : ''}{btcPriceData.dailyChangePercent.toFixed(2)}%
+                      </div>
                     </>
                   ) : (
                     <>
-                      <div className="price-value price-error">Loading...</div>
+                      <div className="price-value price-error">Price unavailable</div>
+                      <div className="price-change price-error">Check connection</div>
                     </>
                   )}
                 </div>
@@ -485,9 +493,10 @@ const Dashboard: React.FC = () => {
           {/* Positions Section */}
           {positions.length > 0 && (
             <section id="positions" className="positions-section">
-              <h2 className="section-title">Current Positions</h2>
               <div className="positions-grid">
-                {positions.map((position, index) => (
+                {positions
+                  .sort((a, b) => b.unrealizedPnl - a.unrealizedPnl)
+                  .map((position, index) => (
                   <div key={index} className="position-card">
                     <div className="position-header">
                       <div className="position-asset">{position.coin}</div>

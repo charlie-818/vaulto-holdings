@@ -1,28 +1,17 @@
 import React from 'react';
-import { useETHPrice } from '../hooks/useCryptoPrices';
+import { useSimplePrices } from '../hooks/useSimplePrices';
 import LoadingSpinner from './LoadingSpinner';
 import './ETHTicker.css';
 
 const ETHTicker: React.FC = () => {
-  const { ethPrice, isLoading, error } = useETHPrice();
+  const { ethPrice, isLoading } = useSimplePrices();
   
-  if (isLoading) {
+  if (isLoading || !ethPrice) {
     return (
       <div className="eth-ticker">
         <div className="ticker-content">
           <span className="ticker-label">ETH</span>
           <LoadingSpinner size="small" />
-        </div>
-      </div>
-    );
-  }
-  
-  if (error || !ethPrice) {
-    return (
-      <div className="eth-ticker">
-        <div className="ticker-content">
-          <span className="ticker-label">ETH</span>
-          <span className="ticker-price error">Error</span>
         </div>
       </div>
     );

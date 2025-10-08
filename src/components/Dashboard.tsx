@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VaultMetrics, DataSource, ComprehensiveVaultMetrics } from '../types';
 import { mockVaultMetrics, mockDataSources } from '../data/mockData';
 import { hyperliquidAPI } from '../services/api';
-import { useCryptoPrices } from '../hooks/useCryptoPrices';
-import { priceService } from '../services/priceService';
+import { useSimplePrices } from '../hooks/useSimplePrices';
 import Header from './Header';
 import MetricCard from './MetricCard';
 import Footer from './Footer';
@@ -33,16 +32,8 @@ const Dashboard: React.FC = () => {
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
 
-  // Use the new crypto prices hook
-  const { ethPrice, btcPrice, refreshPrices } = useCryptoPrices({
-    autoRefresh: true,
-    refreshInterval: 30000, // 30 seconds
-    enableErrorRetry: true,
-    onError: (error) => {
-      console.error('Price fetch error:', error);
-      setError(`Price data error: ${error}`);
-    }
-  });
+  // Use simple prices hook - non-blocking
+  const { ethPrice, btcPrice } = useSimplePrices();
 
   // Fetch comprehensive vault data from Hyperliquid
   const fetchVaultData = React.useCallback(async () => {
@@ -55,7 +46,7 @@ const Dashboard: React.FC = () => {
         comprehensiveData = await hyperliquidAPI.getComprehensiveVaultMetrics();
         setComprehensiveMetrics(comprehensiveData);
       } catch (vaultError) {
-        console.error('Failed to fetch vault data:', vaultError);
+        console.log('Failed to fetch vault data:', vaultError);
         // Create mock comprehensive data to prevent crashes
         comprehensiveData = {
           ...mockVaultMetrics,
@@ -104,11 +95,6 @@ const Dashboard: React.FC = () => {
         };
         setComprehensiveMetrics(comprehensiveData);
       }
-      
-      setLoadingStage('fetching-prices');
-      
-      // Refresh prices using the new hook
-      await refreshPrices();
       
       setLoadingStage('calculating');
       
@@ -202,11 +188,11 @@ const Dashboard: React.FC = () => {
       setLoadingStage('complete');
       setError(null);
     } catch (error) {
-      console.error('Error fetching vault data:', error);
+      console.log('Error fetching vault data:', error);
       setError('Failed to load vault data. Using cached data.');
       // Keep existing data if API fails
     }
-  }, [refreshPrices, ethPrice, btcPrice]);
+  }, [ethPrice, btcPrice]);
 
 
 
@@ -227,18 +213,6 @@ const Dashboard: React.FC = () => {
     };
 
     initializeData();
-    
-    // Add debug functions to window for testing
-    (window as any).debugVaultoPrices = async () => {
-      console.log('=== Vaulto Price Debug ===');
-      console.log('Cache status:', priceService.getCacheStatus());
-      console.log('Testing price fetch...');
-      const result = await priceService.getCryptoPrices();
-      console.log('Test result:', result);
-      return result;
-    };
-    
-
   }, [fetchVaultData]);
 
   // Real-time data updates

@@ -332,20 +332,25 @@
     justify-content: flex-start;
     font-weight: 600;
     color: var(--text-primary);
+    padding: 4px 0;
   }
   
   .table-cell.rank:before {
     content: "Rank: ";
     font-weight: 500;
     color: var(--text-secondary);
-    margin-right: 8px;
+    margin-right: 6px;
+  }
+  
+  .table-cell.address {
+    padding: 4px 0;
   }
   
   .table-cell.address:before {
     content: "Address: ";
     font-weight: 500;
     color: var(--text-secondary);
-    margin-right: 8px;
+    margin-right: 6px;
   }
   
   .table-cell.equity:before {
@@ -377,15 +382,20 @@
   }
   
   .address-container {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
   }
   
   .address-text {
     font-size: 0.75rem;
-    word-break: break-all;
+    word-break: break-word;
     text-align: right;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .copy-button {
@@ -472,11 +482,13 @@
   .table-cell.all-time-pnl:before,
   .table-cell.entry:before {
     font-size: 0.75rem;
-    min-width: 100px;
+    min-width: 80px;
+    margin-right: 4px;
   }
   
   .address-text {
     font-size: 0.7rem;
+    max-width: 100px;
   }
   
   .copy-button {

@@ -779,45 +779,77 @@ export const marketAPI = {
       console.log(`Fetching ${coin} price directly from CoinGecko API...`);
       const coinId = coin === 'ETH' ? 'ethereum' : 'bitcoin';
       
-      // Use CORS proxy to access CoinGecko API
+      // Try multiple CORS proxy options with fallback
       const targetUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
       
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
+      // List of CORS proxy options to try
+      const proxyOptions = [
+        `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+      ];
+      
+      let lastError: Error | null = null;
+      
+      for (const proxyUrl of proxyOptions) {
+        try {
+          console.log(`Trying proxy: ${proxyUrl.split('/')[2]}...`);
+          
+          const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Proxy returned ${response.status}`);
+          }
+          
+          let data;
+          if (proxyUrl.includes('allorigins.win')) {
+            const proxyData = await response.json();
+            data = JSON.parse(proxyData.contents);
+          } else if (proxyUrl.includes('corsproxy.io')) {
+            data = await response.json();
+          } else {
+            data = await response.json();
+          }
+          
+          const coinData = data[coinId];
+          
+          if (!coinData || !coinData.usd) {
+            throw new Error('Invalid data structure from CoinGecko');
+          }
+          
+          console.log(`CoinGecko ${coin} raw data:`, coinData);
+          
+          // Use exact values from CoinGecko API - no calculations
+          const result = {
+            current: coinData.usd, // Exact current price from CoinGecko
+            dailyChangePercent: coinData.usd_24h_change || 0 // Exact 24h change from CoinGecko
+          };
+          
+          console.log(`✅ CoinGecko ${coin} result (exact API values):`, result);
+          
+          if (validatePriceData(result, coin)) {
+            setCachedData(cacheKey, result);
+            return result;
+          } else {
+            throw new Error(`CoinGecko data validation failed for ${coin}`);
+          }
+          
+        } catch (proxyError) {
+          console.log(`Proxy failed: ${proxyError}`);
+          lastError = proxyError as Error;
+          continue;
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`CoinGecko API proxy returned ${response.status}`);
       }
       
-      const proxyData = await response.json();
-      const data = JSON.parse(proxyData.contents);
-      const coinData = data[coinId];
-      
-      if (!coinData || !coinData.usd) {
-        throw new Error('Invalid data structure from CoinGecko');
-      }
-      
-      console.log(`CoinGecko ${coin} raw data:`, coinData);
-      
-      // Use exact values from CoinGecko API - no calculations
-      const result = {
-        current: coinData.usd, // Exact current price from CoinGecko
-        dailyChangePercent: coinData.usd_24h_change || 0 // Exact 24h change from CoinGecko
-      };
-      
-      console.log(`✅ CoinGecko ${coin} result (exact API values):`, result);
-      
-      if (validatePriceData(result, coin)) {
-        setCachedData(cacheKey, result);
-        return result;
-      } else {
-        throw new Error(`CoinGecko data validation failed for ${coin}`);
-      }
+      // If all proxies failed, throw the last error
+      throw lastError || new Error('All CORS proxies failed');
       
     } catch (error) {
       console.error(`❌ CoinGecko API failed for ${coin}:`, error);

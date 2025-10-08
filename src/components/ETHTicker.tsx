@@ -1,12 +1,33 @@
 import React from 'react';
-import { VaultMetrics } from '../types';
+import { useETHPrice } from '../hooks/useCryptoPrices';
+import LoadingSpinner from './LoadingSpinner';
 import './ETHTicker.css';
 
-interface ETHTickerProps {
-  ethPrice: VaultMetrics['ethPrice'];
-}
-
-const ETHTicker: React.FC<ETHTickerProps> = ({ ethPrice }) => {
+const ETHTicker: React.FC = () => {
+  const { ethPrice, isLoading, error } = useETHPrice();
+  
+  if (isLoading) {
+    return (
+      <div className="eth-ticker">
+        <div className="ticker-content">
+          <span className="ticker-label">ETH</span>
+          <LoadingSpinner size="small" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !ethPrice) {
+    return (
+      <div className="eth-ticker">
+        <div className="ticker-content">
+          <span className="ticker-label">ETH</span>
+          <span className="ticker-price error">Error</span>
+        </div>
+      </div>
+    );
+  }
+  
   const isPositive = ethPrice.dailyChangePercent >= 0;
   
   return (

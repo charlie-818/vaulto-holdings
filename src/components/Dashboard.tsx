@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { VaultMetrics, DataSource, ComprehensiveVaultMetrics } from '../types';
 import { mockVaultMetrics, mockDataSources } from '../data/mockData';
-import { marketAPI, hyperliquidAPI } from '../services/api';
+import { hyperliquidAPI } from '../services/api';
+import { useCryptoPrices } from '../hooks/useCryptoPrices';
+import { priceService } from '../services/priceService';
 import Header from './Header';
 import MetricCard from './MetricCard';
 import Footer from './Footer';
@@ -26,15 +28,24 @@ const Dashboard: React.FC = () => {
   const [comprehensiveMetrics, setComprehensiveMetrics] = useState<ComprehensiveVaultMetrics | null>(null);
 
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
-  const [ethPriceData, setEthPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
-  const [btcPriceData, setBtcPriceData] = useState<{ current: number; dailyChangePercent: number } | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
 
+  // Use the new crypto prices hook
+  const { ethPrice, btcPrice, refreshPrices } = useCryptoPrices({
+    autoRefresh: true,
+    refreshInterval: 30000, // 30 seconds
+    enableErrorRetry: true,
+    onError: (error) => {
+      console.error('Price fetch error:', error);
+      setError(`Price data error: ${error}`);
+    }
+  });
+
   // Fetch comprehensive vault data from Hyperliquid
-  const fetchVaultData = async () => {
+  const fetchVaultData = React.useCallback(async () => {
     try {
       setLoadingStage('fetching-vault');
       
@@ -96,17 +107,8 @@ const Dashboard: React.FC = () => {
       
       setLoadingStage('fetching-prices');
       
-      // Try to fetch crypto prices with robust fallback system
-      let cryptoPrices: { eth: { current: number; dailyChangePercent: number }; btc: { current: number; dailyChangePercent: number } } | null = null;
-      try {
-        cryptoPrices = await marketAPI.getCryptoPrices();
-        console.log('Fetched crypto prices successfully:', cryptoPrices);
-      } catch (priceError) {
-        console.error('Failed to fetch crypto prices:', priceError);
-        // Don't set price data if fetch fails - let UI show error state
-        setEthPriceData(null);
-        setBtcPriceData(null);
-      }
+      // Refresh prices using the new hook
+      await refreshPrices();
       
       setLoadingStage('calculating');
       
@@ -125,11 +127,7 @@ const Dashboard: React.FC = () => {
         
       }
       
-      // Only set price data if fetch was successful
-      if (cryptoPrices) {
-        setEthPriceData(cryptoPrices.eth);
-        setBtcPriceData(cryptoPrices.btc);
-      }
+      // Price data is now handled by the useCryptoPrices hook
       
       // Extract positions from vault state with accurate current prices
       try {
@@ -146,9 +144,9 @@ const Dashboard: React.FC = () => {
             
             // Fallback to known crypto prices for major assets
             if (coin === 'ETH') {
-              return cryptoPrices?.eth.current || 2450;
+              return ethPrice?.current || 2450;
             } else if (coin === 'BTC') {
-              return cryptoPrices?.btc.current || 112000;
+              return btcPrice?.current || 112000;
             }
             
             // Return 0 if no price can be found
@@ -208,7 +206,7 @@ const Dashboard: React.FC = () => {
       setError('Failed to load vault data. Using cached data.');
       // Keep existing data if API fails
     }
-  };
+  }, [refreshPrices, ethPrice, btcPrice]);
 
 
 
@@ -233,117 +231,30 @@ const Dashboard: React.FC = () => {
     // Add debug functions to window for testing
     (window as any).debugVaultoPrices = async () => {
       console.log('=== Vaulto Price Debug ===');
-      console.log('Cache status:', marketAPI.getCacheStatus());
+      console.log('Cache status:', priceService.getCacheStatus());
       console.log('Testing price fetch...');
-      const result = await marketAPI.testPriceFetching();
+      const result = await priceService.getCryptoPrices();
       console.log('Test result:', result);
       return result;
     };
     
 
-  }, []);
+  }, [fetchVaultData]);
 
   // Real-time data updates
   useEffect(() => {
     const interval = setInterval(async () => {
-      // Check if price data is stale before fetching
-      if (marketAPI.isPriceDataStale()) {
+      // Fetch vault data periodically (prices are handled by the hook)
+      try {
         await fetchVaultData();
-      } else {
-        // Only fetch vault data if prices are fresh
-        try {
-          const comprehensiveData = await hyperliquidAPI.getComprehensiveVaultMetrics();
-          setComprehensiveMetrics(comprehensiveData);
-          
-          // Try to fetch crypto prices
-          try {
-            const cryptoPrices = await marketAPI.getCryptoPrices();
-            
-            // Update basic metrics
-            setVaultMetrics({
-              ethNetExposure: comprehensiveData.ethNetExposure,
-              totalLeverage: comprehensiveData.totalLeverage,
-              liquidationPrice: comprehensiveData.liquidationPrice,
-              vaultNav: comprehensiveData.vaultNav,
-              totalVaultValue: comprehensiveData.totalVaultValue,
-              ethPrice: comprehensiveData.ethPrice
-            });
-            
-            
-            setEthPriceData(cryptoPrices.eth);
-            setBtcPriceData(cryptoPrices.btc);
-            setError(null);
-            
-            // Update positions with fresh prices
-            try {
-              const vaultState = await hyperliquidAPI.getVaultState();
-              
-              const getCurrentPrice = async (coin: string) => {
-                try {
-                  const marketMeta = await hyperliquidAPI.getMarketMeta();
-                  const asset = marketMeta.assets?.find((a: any) => a.name === coin);
-                  if (asset && asset.price) {
-                    return parseFloat(asset.price);
-                  }
-                } catch (error) {
-                  console.log(`Failed to get ${coin} price from Hyperliquid, using fallback`);
-                }
-                
-                if (coin === 'ETH') {
-                  return cryptoPrices?.eth.current || 2450;
-                } else if (coin === 'BTC') {
-                  return cryptoPrices?.btc.current || 112000;
-                } else {
-                  try {
-                    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin.toLowerCase()}&vs_currencies=usd`);
-                    if (response.ok) {
-                      const data = await response.json();
-                      return data[coin.toLowerCase()]?.usd || 0;
-                    }
-                  } catch (error) {
-                    console.log(`Failed to get ${coin} price from CoinGecko`);
-                  }
-                  return 0;
-                }
-              };
-              
-              const positionData = await Promise.all(
-                vaultState.assetPositions.map(async (pos: any) => {
-                  const currentPrice = await getCurrentPrice(pos.position.coin);
-                  return {
-                    coin: pos.position.coin,
-                    size: parseFloat(pos.position.szi),
-                    entryPrice: parseFloat(pos.position.entryPx),
-                    currentPrice: currentPrice || parseFloat(pos.position.entryPx),
-                    unrealizedPnl: parseFloat(pos.position.unrealizedPnl),
-                    leverage: pos.position.leverage.value,
-                    liquidationPrice: parseFloat(pos.position.liquidationPx),
-                    marginUsed: parseFloat(pos.position.marginUsed),
-                    returnOnEquity: parseFloat(pos.position.returnOnEquity)
-                  };
-                })
-              );
-              
-              setPositions(positionData);
-            } catch (positionError) {
-              console.error('Failed to update positions in periodic update:', positionError);
-            }
-          } catch (priceError) {
-            console.error('Failed to fetch crypto prices in periodic update:', priceError);
-            // Keep existing vault data but clear price data
-            setEthPriceData(null);
-            setBtcPriceData(null);
-            setError('Price data unavailable. Vault data updated.');
-          }
-        } catch (error) {
-          console.error('Error in periodic vault data update:', error);
-          setError('Failed to update vault data. Retrying...');
-        }
+      } catch (error) {
+        console.error('Real-time vault data update failed:', error);
       }
-    }, 30000); // Update every 30 seconds
+    }, 60000); // Update every 60 seconds (prices update every 30 seconds via hook)
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchVaultData]); // Include fetchVaultData dependency
+
 
   if (loading) {
     const getLoadingMessage = () => {
@@ -399,11 +310,11 @@ const Dashboard: React.FC = () => {
               <div className="hero-prices">
                 <div className="hero-price eth-price-box">
                   <div className="price-label">Ethereum (ETH)</div>
-                  {ethPriceData ? (
+                  {ethPrice ? (
                     <>
-                      <div className="price-value">${Math.round(ethPriceData.current).toLocaleString('en-US')}</div>
-                      <div className={`price-change ${ethPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {ethPriceData.dailyChangePercent >= 0 ? '+' : ''}{ethPriceData.dailyChangePercent.toFixed(2)}%
+                      <div className="price-value">${Math.round(ethPrice.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${ethPrice.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {ethPrice.dailyChangePercent >= 0 ? '+' : ''}{ethPrice.dailyChangePercent.toFixed(2)}%
                       </div>
                     </>
                   ) : (
@@ -415,11 +326,11 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="hero-price btc-price-box">
                   <div className="price-label">Bitcoin (BTC)</div>
-                  {btcPriceData ? (
+                  {btcPrice ? (
                     <>
-                      <div className="price-value">${Math.round(btcPriceData.current).toLocaleString('en-US')}</div>
-                      <div className={`price-change ${btcPriceData.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {btcPriceData.dailyChangePercent >= 0 ? '+' : ''}{btcPriceData.dailyChangePercent.toFixed(2)}%
+                      <div className="price-value">${Math.round(btcPrice.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${btcPrice.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {btcPrice.dailyChangePercent >= 0 ? '+' : ''}{btcPrice.dailyChangePercent.toFixed(2)}%
                       </div>
                     </>
                   ) : (

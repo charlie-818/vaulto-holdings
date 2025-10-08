@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { VaultMetrics, PerformanceMetrics, VaultActivity, VaultStatistics, CoinGeckoMarketChartResponse, ETHPriceData, VaultDetails, VaultFollower, UserVaultEquities, ComprehensiveVaultMetrics, PortfolioPerformance, RiskMetrics } from '../types';
+import { priceService } from './priceService';
 
 // API base URLs - replace with actual endpoints
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.vaulto.ai';
@@ -82,6 +83,7 @@ const setCachedData = (key: string, data: any) => {
 };
 
 // Utility function to check if cached data is stale and needs refresh
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isDataStale = (key: string, maxAge: number = CACHE_DURATION) => {
   const cached = cache.get(key);
   if (!cached) return true;
@@ -89,6 +91,7 @@ const isDataStale = (key: string, maxAge: number = CACHE_DURATION) => {
 };
 
 // Force refresh cache for specific keys
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const invalidateCache = (key: string) => {
   cache.delete(key);
 };
@@ -933,152 +936,52 @@ export const marketAPI = {
       return fallback;
     }
   },
-  // Get ETH price directly from CoinGecko API - no calculations
+  // Get ETH price using the new price service
   getETHPrice: async (): Promise<ETHPriceData> => {
-    const cacheKey = 'eth_price';
-    
-    // Check cache with shorter duration for price data
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && validatePriceData(cached.data, 'ETH')) {
-      console.log(`Using cached ETH price (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
-      return cached.data;
-    }
-
-    try {
-      console.log('Fetching ETH price directly from CoinGecko API...');
-      const priceData = await marketAPI.fetchPriceFromCoinGecko('ETH');
-      
-      // Use exact values from CoinGecko - calculate dailyChange from the exact percentage
-      const result = {
-        current: priceData.current, // Exact current price from CoinGecko
-        dailyChange: (priceData.current * priceData.dailyChangePercent) / 100, // Calculate USD change from exact percentage
-        dailyChangePercent: priceData.dailyChangePercent, // Exact 24h percentage from CoinGecko
-        timestamp: Date.now()
-      };
-
-      setCachedData(cacheKey, result);
-      console.log('ETH price fetched successfully from CoinGecko:', result);
-      return result;
-    } catch (error) {
-      console.error('CoinGecko ETH price fetch failed:', error);
-      throw new Error(`Failed to fetch ETH price from CoinGecko: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    return priceService.getETHPriceData();
   },
 
-  // Get BTC price directly from CoinGecko API - no calculations
+  // Get BTC price using the new price service
   getBTCPrice: async (): Promise<{ current: number; dailyChangePercent: number }> => {
-    const cacheKey = 'btc_price';
-    
-    // Check cache with shorter duration for price data
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && validatePriceData(cached.data, 'BTC')) {
-      console.log(`Using cached BTC price (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
-      return cached.data;
-    }
-
-    try {
-      console.log('Fetching BTC price directly from CoinGecko API...');
-      const priceData = await marketAPI.fetchPriceFromCoinGecko('BTC');
-      
-      // Use exact values from CoinGecko - no calculations
-      const result = {
-        current: priceData.current, // Exact current price from CoinGecko
-        dailyChangePercent: priceData.dailyChangePercent // Exact 24h percentage from CoinGecko
-      };
-
-      setCachedData(cacheKey, result);
-      console.log('BTC price fetched successfully from CoinGecko:', result);
-      return result;
-    } catch (error) {
-      console.error('CoinGecko BTC price fetch failed:', error);
-      throw new Error(`Failed to fetch BTC price from CoinGecko: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    const price = await priceService.getBTCPrice();
+    return {
+      current: price.current,
+      dailyChangePercent: price.dailyChangePercent
+    };
   },
 
-  // Get both ETH and BTC prices with enhanced reliability and accuracy
+  // Get both ETH and BTC prices using the new price service
   getCryptoPrices: async (): Promise<{ eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } }> => {
-    const cacheKey = 'crypto_prices_batch';
-    
-    // Check cache with shorter duration for price data
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_DURATION && 
-        validatePriceData(cached.data.eth, 'ETH') && validatePriceData(cached.data.btc, 'BTC')) {
-      console.log(`Using cached crypto prices (age: ${Date.now() - cached.timestamp}ms):`, cached.data);
-      return cached.data;
-    }
-
-    try {
-      console.log('🔄 Fetching crypto prices with enhanced reliability...');
-      
-      // Use retry mechanism for both ETH and BTC prices
-      const [ethPrice, btcPrice] = await Promise.allSettled([
-        retryWithBackoff(() => marketAPI.getETHPrice(), 2, 1000),
-        retryWithBackoff(() => marketAPI.getBTCPrice(), 2, 1000)
-      ]);
-      
-      // Handle results with proper error handling
-      const ethResult = ethPrice.status === 'fulfilled' ? ethPrice.value : {
-        current: 2450,
-        dailyChange: 0,
-        dailyChangePercent: 0,
-        timestamp: Date.now()
-      };
-      
-      const btcResult = btcPrice.status === 'fulfilled' ? btcPrice.value : {
-        current: 112000,
-        dailyChangePercent: 0
-      };
-      
-      // Log any failures
-      if (ethPrice.status === 'rejected') {
-        console.error('❌ ETH price fetch failed:', ethPrice.reason);
+    const prices = await priceService.getCryptoPrices();
+    return {
+      eth: {
+        current: prices.eth.current,
+        dailyChange: prices.eth.dailyChange,
+        dailyChangePercent: prices.eth.dailyChangePercent,
+        timestamp: prices.eth.timestamp
+      },
+      btc: {
+        current: prices.btc.current,
+        dailyChangePercent: prices.btc.dailyChangePercent
       }
-      if (btcPrice.status === 'rejected') {
-        console.error('❌ BTC price fetch failed:', btcPrice.reason);
-      }
-      
-      const result = { eth: ethResult, btc: btcResult };
-      setCachedData(cacheKey, result);
-      
-      // Enhanced success logging
-      console.log('✅ Crypto prices fetched successfully:');
-      console.log(`   ETH: $${result.eth.current} (${result.eth.dailyChangePercent > 0 ? '+' : ''}${result.eth.dailyChangePercent.toFixed(2)}%)`);
-      console.log(`   BTC: $${result.btc.current} (${result.btc.dailyChangePercent > 0 ? '+' : ''}${result.btc.dailyChangePercent.toFixed(2)}%)`);
-      
-      return result;
-      
-    } catch (error) {
-      console.error('❌ CoinGecko crypto price fetch completely failed:', error);
-      // Return fallback data instead of throwing error
-      console.log('⚠️ Using fallback crypto prices due to complete CoinGecko fetch failure');
-      const fallbackResult = {
-        eth: {
-          current: 2450,
-          dailyChange: 0,
-          dailyChangePercent: 0,
-          timestamp: Date.now()
-        },
-        btc: {
-          current: 112000,
-          dailyChangePercent: 0
-        }
-      };
-      setCachedData(cacheKey, fallbackResult);
-      return fallbackResult;
-    }
+    };
   },
 
-  // Force refresh crypto prices from CoinGecko (useful for manual refresh)
+  // Force refresh crypto prices using the new price service
   forceRefreshPrices: async (): Promise<{ eth: ETHPriceData; btc: { current: number; dailyChangePercent: number } }> => {
-    // Invalidate all price caches
-    invalidateCache('eth_price');
-    invalidateCache('btc_price');
-    invalidateCache('crypto_prices_batch');
-    invalidateCache('coingecko_price_eth');
-    invalidateCache('coingecko_price_btc');
-    
-    // Fetch fresh prices from CoinGecko
-    return marketAPI.getCryptoPrices();
+    const prices = await priceService.forceRefreshPrices();
+    return {
+      eth: {
+        current: prices.eth.current,
+        dailyChange: prices.eth.dailyChange,
+        dailyChangePercent: prices.eth.dailyChangePercent,
+        timestamp: prices.eth.timestamp
+      },
+      btc: {
+        current: prices.btc.current,
+        dailyChangePercent: prices.btc.dailyChangePercent
+      }
+    };
   },
 
   // Get cache status for debugging
@@ -1111,9 +1014,10 @@ export const marketAPI = {
 
 
 
-  // Check if price data is stale
+  // Check if price data is stale (now uses the price service)
   isPriceDataStale: () => {
-    return isDataStale('crypto_prices_batch', PRICE_CACHE_DURATION); // Use consistent price cache duration
+    // Always return false since the price service handles its own caching
+    return false;
   },
 
   // Get ETH historical price data for performance chart

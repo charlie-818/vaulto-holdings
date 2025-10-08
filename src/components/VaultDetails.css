@@ -221,6 +221,8 @@
   .vault-details {
     padding: 16px;
     margin-bottom: 16px;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .vault-details-header {
@@ -299,6 +301,8 @@
   .vault-details {
     padding: 12px;
     margin-bottom: 12px;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .vault-details-header {

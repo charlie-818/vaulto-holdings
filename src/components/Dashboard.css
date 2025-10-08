@@ -592,14 +592,17 @@
 /* Mobile Breakpoint */
 @media (max-width: 768px) {
   .main-content {
-    padding: 1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 0;
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
   }
   
   .hero-section {
     padding: 2rem 1rem;
     margin-bottom: 2rem;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .hero-content {
@@ -607,6 +610,7 @@
     gap: 1.5rem;
     align-items: center;
     max-width: 100%;
+    padding: 0 1rem;
   }
   
   .hero-prices {
@@ -735,13 +739,15 @@
   .primary-metrics,
   .performance-section,
   .risk-section {
-    padding: 0 0.5rem;
+    padding: 0 1rem;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .positions-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-    padding: 0 0.5rem;
+    padding: 0 1rem;
   }
   
   .position-card {
@@ -753,14 +759,17 @@
 /* Small Mobile Breakpoint */
 @media (max-width: 480px) {
   .main-content {
-    padding: 0.75rem;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+    padding: 0;
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
   }
   
   .hero-section {
     padding: 1.5rem 0.75rem;
     margin-bottom: 1.5rem;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .hero-content {
@@ -824,17 +833,19 @@
   .primary-metrics,
   .performance-section,
   .risk-section {
-    padding: 0 0.25rem;
+    padding: 0 0.75rem;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
   }
   
   .metrics-grid {
     gap: 0.75rem;
-    padding: 0 0.25rem;
+    padding: 0 0.75rem;
   }
   
   .positions-grid {
     gap: 0.75rem;
-    padding: 0 0.25rem;
+    padding: 0 0.75rem;
   }
   
   .position-card {

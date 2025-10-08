@@ -624,8 +624,8 @@
   .hero-price {
     height: 140px;
     min-width: auto;
-    width: 100%;
-    max-width: 320px;
+    width: calc(100vw - 2rem);
+    max-width: none;
     padding: 1.25rem;
     touch-action: manipulation;
   }
@@ -640,8 +640,8 @@
   
   .vault-info {
     min-width: auto;
-    width: 100%;
-    max-width: 320px;
+    width: calc(100vw - 2rem);
+    max-width: none;
     height: auto;
     min-height: 200px;
     padding: 1.5rem;
@@ -753,6 +753,8 @@
   .position-card {
     padding: 1.25rem;
     touch-action: manipulation;
+    width: calc(100vw - 2rem);
+    margin: 0 auto;
   }
 }
 
@@ -783,11 +785,13 @@
   .hero-price {
     height: 120px;
     padding: 1rem;
-    max-width: 280px;
+    width: calc(100vw - 1.5rem);
+    max-width: none;
   }
   
   .vault-info {
-    max-width: 280px;
+    width: calc(100vw - 1.5rem);
+    max-width: none;
     min-height: 180px;
     padding: 1.25rem;
   }
@@ -850,6 +854,8 @@
   
   .position-card {
     padding: 1rem;
+    width: calc(100vw - 1.5rem);
+    margin: 0 auto;
   }
 }
 

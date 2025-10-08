@@ -60,7 +60,14 @@ const TopDepositors: React.FC<TopDepositorsProps> = ({ depositors, maxDisplay = 
     });
   };
 
-  const displayDepositors = showAll ? depositors : depositors.slice(0, maxDisplay);
+  // Sort depositors by all-time profit (highest to lowest)
+  const sortedDepositors = [...depositors].sort((a, b) => {
+    const profitA = parseFloat(a.allTimePnl);
+    const profitB = parseFloat(b.allTimePnl);
+    return profitB - profitA; // Descending order (highest profit first)
+  });
+
+  const displayDepositors = showAll ? sortedDepositors : sortedDepositors.slice(0, maxDisplay);
   const totalEquity = depositors.reduce((sum, depositor) => sum + parseFloat(depositor.vaultEquity), 0);
 
   return (

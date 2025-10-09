@@ -58,9 +58,12 @@ export const etherscanAPI = {
     const apiKey = process.env.REACT_APP_ETHERSCAN_API_KEY;
     
     if (!apiKey) {
-      console.error('ETHERSCAN_API_KEY not found in environment variables');
-      throw new Error('Etherscan API key not configured');
+      console.error('REACT_APP_ETHERSCAN_API_KEY not found in environment variables');
+      console.error('Available env vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
+      throw new Error('Etherscan API key not configured. Please set REACT_APP_ETHERSCAN_API_KEY in Netlify environment variables.');
     }
+    
+    console.log('Etherscan API key found, length:', apiKey.length);
 
     try {
       console.log(`Fetching token balance from Etherscan API V2 for wallet ${walletAddress} on chain ${chainId}`);

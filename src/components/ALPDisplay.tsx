@@ -16,7 +16,7 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
     <div className="alp-display">
       <div className="alp-header">
         <img src="/aster.png" alt="Aster" className="alp-logo" />
-        <div className="alp-title">Aster</div>
+        <div className="alp-title">Liquidity Pool</div>
       </div>
       
       <div className="alp-content">
@@ -26,6 +26,10 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
           })} ALP</span>
+        </div>
+        <div className="alp-row">
+          <span className="alp-label">Target APY:</span>
+          <span className="alp-value alp-apy">{currentAPY.toFixed(0)}%</span>
         </div>
       </div>
       

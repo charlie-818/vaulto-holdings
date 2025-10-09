@@ -68,6 +68,7 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .position-card:hover {
@@ -344,8 +345,8 @@
 }
 
 .vault-logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -696,8 +697,8 @@
   }
 
   .vault-logo {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
   }
 
   .vault-label {
@@ -852,8 +853,8 @@
   }
 
   .vault-logo {
-    width: 26px;
-    height: 26px;
+    width: 36px;
+    height: 36px;
   }
 
   .vault-label {

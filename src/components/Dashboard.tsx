@@ -4,6 +4,7 @@ import { mockVaultMetrics, mockDataSources } from '../data/mockData';
 import { hyperliquidAPI } from '../services/api';
 import { useSimplePrices } from '../hooks/useSimplePrices';
 import { detectNewPositions, trackAllPositions, isFirstRun } from '../services/positionTracker';
+import { etherscanAPI } from '../services/etherscanApi';
 import Header from './Header';
 import MetricCard from './MetricCard';
 import Footer from './Footer';
@@ -33,9 +34,27 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
+  
+  // ALP token balance state
+  const [alpBalance, setAlpBalance] = useState<number>(0);
 
   // Use simple prices hook - non-blocking
   const { ethPrice, btcPrice } = useSimplePrices();
+
+  // Fetch ALP token balance from Etherscan
+  const fetchALPBalance = React.useCallback(async () => {
+    try {
+      const balance = await etherscanAPI.getALPBalance();
+      setAlpBalance(balance);
+      console.log('ALP balance updated:', balance);
+    } catch (error) {
+      console.error('Failed to fetch ALP balance:', error);
+      // Keep previous balance or set to 0 if first fetch
+      if (alpBalance === 0) {
+        setAlpBalance(0);
+      }
+    }
+  }, [alpBalance]);
 
   // Fetch comprehensive vault data from Hyperliquid
   const fetchVaultData = React.useCallback(async () => {
@@ -255,7 +274,11 @@ const Dashboard: React.FC = () => {
       // Simulate a brief initialization delay for better UX
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      await fetchVaultData();
+      // Fetch both vault data and ALP balance in parallel
+      await Promise.all([
+        fetchVaultData(),
+        fetchALPBalance()
+      ]);
       
       // Brief delay before hiding loading to show completion
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -263,21 +286,24 @@ const Dashboard: React.FC = () => {
     };
 
     initializeData();
-  }, [fetchVaultData]);
+  }, [fetchVaultData, fetchALPBalance]);
 
   // Real-time data updates
   useEffect(() => {
     const interval = setInterval(async () => {
-      // Fetch vault data periodically (prices are handled by the hook)
+      // Fetch vault data and ALP balance periodically (prices are handled by the hook)
       try {
-        await fetchVaultData();
+        await Promise.all([
+          fetchVaultData(),
+          fetchALPBalance()
+        ]);
       } catch (error) {
-        console.error('Real-time vault data update failed:', error);
+        console.error('Real-time data update failed:', error);
       }
     }, 60000); // Update every 60 seconds (prices update every 30 seconds via hook)
 
     return () => clearInterval(interval);
-  }, [fetchVaultData]); // Include fetchVaultData dependency
+  }, [fetchVaultData, fetchALPBalance]); // Include both fetch functions
 
 
   // Calculate optimal grid columns for balanced layout
@@ -408,7 +434,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 <ALPDisplay 
-                  totalHoldings={1250.75}
+                  totalHoldings={alpBalance}
                   currentAPY={30.5}
                   alpTokenUrl="https://www.asterdex.com/en/earn/alp"
                 />

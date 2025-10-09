@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { VaultMetrics, DataSource, ComprehensiveVaultMetrics } from '../types';
+import { VaultMetrics, DataSource, ComprehensiveVaultMetrics, PositionNotification } from '../types';
 import { mockVaultMetrics, mockDataSources } from '../data/mockData';
 import { hyperliquidAPI } from '../services/api';
 import { useSimplePrices } from '../hooks/useSimplePrices';
+import { detectNewPositions, trackAllPositions, isFirstRun } from '../services/positionTracker';
 import Header from './Header';
 import MetricCard from './MetricCard';
 import Footer from './Footer';
 import LoadingSpinner from './LoadingSpinner';
 import TopDepositors from './TopDepositors';
+import ALPDisplay from './ALPDisplay';
 import './Dashboard.css';
 
 interface Position {
@@ -161,6 +163,29 @@ const Dashboard: React.FC = () => {
         );
         
         setPositions(positionData);
+        
+        // Check for new positions and send webhooks
+        if (!isFirstRun()) {
+          const newPositions = detectNewPositions(positionData);
+          
+          if (newPositions.length > 0) {
+            console.log(`Detected ${newPositions.length} new position(s)`);
+            
+            // Send webhook for each new position
+            for (const position of newPositions) {
+              try {
+                await sendPositionWebhook(position);
+                console.log(`Webhook sent for new ${position.asset} position`);
+              } catch (webhookError) {
+                console.error(`Failed to send webhook for ${position.asset}:`, webhookError);
+              }
+            }
+          }
+        } else {
+          // First run - track all current positions without sending webhooks
+          console.log('First run - tracking current positions without sending webhooks');
+          trackAllPositions(positionData);
+        }
       } catch (positionError) {
         console.error('Failed to fetch positions:', positionError);
         setPositions([]);
@@ -193,6 +218,31 @@ const Dashboard: React.FC = () => {
       // Keep existing data if API fails
     }
   }, [ethPrice, btcPrice]);
+
+  // Function to send position webhook (automatic only)
+  const sendPositionWebhook = async (positionData: PositionNotification): Promise<void> => {
+    try {
+      const response = await fetch('/.netlify/functions/send-position-webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(positionData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to send webhook');
+      }
+
+      console.log('Webhook sent successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error sending webhook:', error);
+      throw error;
+    }
+  };
 
 
 
@@ -229,6 +279,16 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchVaultData]); // Include fetchVaultData dependency
 
+
+  // Calculate optimal grid columns for balanced layout
+  const getOptimalColumns = (count: number): number => {
+    // For 1-4 cards: all in one row
+    if (count <= 4) return count;
+    
+    // For 5+ cards: use ceiling of count/2 to ensure last row has at most one less card
+    // Examples: 5->3, 6->3, 7->4, 8->4, 9->5, 10->5, etc.
+    return Math.ceil(count / 2);
+  };
 
   if (loading) {
     const getLoadingMessage = () => {
@@ -316,31 +376,42 @@ const Dashboard: React.FC = () => {
                 </div>
 
               </div>
-              <div className="vault-info">
-                <div className="vault-label">Vaulto Holdings</div>
-                <div className="vault-address">
-                  <span className="address-text">0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a</span>
-                  <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Vaulto Holdings Address">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
-                      <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                    </svg>
-                  </button>
+              <div className="hero-secondary">
+                <div className="vault-info">
+                  <div className="vault-header-with-logo">
+                    <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
+                    <div className="vault-label">Vault</div>
+                  </div>
+                  <div className="vault-address">
+                    <span className="address-text">0xba9e...497a</span>
+                    <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Full Address: 0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="vault-link">
+                    <a 
+                      href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="vault-link-button"
+                      title="View vault on Hyperliquid"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                      </svg>
+                      View on Hyperliquid
+                    </a>
+                  </div>
                 </div>
 
-                <div className="vault-link">
-                  <a 
-                    href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="vault-link-button"
-                    title="View vault on Hyperliquid"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                    </svg>
-                    View on Hyperliquid
-                  </a>
-                </div>
+                <ALPDisplay 
+                  totalHoldings={1250.75}
+                  currentAPY={30.5}
+                  alpTokenUrl="https://www.asterdex.com/en/earn/alp"
+                />
               </div>
             </div>
           </section>
@@ -378,7 +449,12 @@ const Dashboard: React.FC = () => {
           {/* Positions Section */}
           {positions.length > 0 && (
             <section id="positions" className="positions-section">
-              <div className="positions-grid">
+              <div 
+                className="positions-grid"
+                style={{
+                  '--grid-cols': getOptimalColumns(positions.length)
+                } as React.CSSProperties}
+              >
                 {positions
                   .sort((a, b) => b.unrealizedPnl - a.unrealizedPnl)
                   .map((position, index) => (

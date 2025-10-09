@@ -1,0 +1,216 @@
+.alp-display {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  min-width: 280px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.alp-display:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.alp-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.alp-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.alp-title {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alp-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.alp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alp-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.alp-value {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.alp-apy {
+  color: var(--success-color);
+  font-size: 1.1rem;
+}
+
+.alp-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.alp-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.alp-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: var(--text-primary);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.alp-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .alp-display {
+    min-width: 240px;
+    height: 200px;
+  }
+  
+  .alp-title {
+    font-size: 0.85rem;
+  }
+  
+  .alp-value {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .alp-display {
+    min-width: auto;
+    width: calc(100vw - 2rem);
+    height: auto;
+    min-height: 180px;
+    padding: 1.25rem;
+  }
+  
+  .alp-header {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .alp-title {
+    font-size: 0.9rem;
+  }
+  
+  .alp-row {
+    padding: 0.5rem 0;
+    flex-wrap: nowrap;
+  }
+  
+  .alp-label {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .alp-value {
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  
+  .alp-link {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.8rem;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .alp-display {
+    width: calc(100vw - 1.5rem);
+    min-height: 160px;
+    padding: 1rem;
+  }
+  
+  .alp-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .alp-logo {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .alp-title {
+    font-size: 0.85rem;
+  }
+  
+  .alp-row {
+    padding: 0.4rem 0;
+    flex-wrap: nowrap;
+  }
+  
+  .alp-label {
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
+  .alp-value {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .alp-apy {
+    font-size: 1rem;
+  }
+  
+  .alp-link {
+    padding: 0.6rem 0.6rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  
+  .alp-link svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+

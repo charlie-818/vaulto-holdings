@@ -304,6 +304,9 @@
   .table-body {
     max-height: none;
     overflow-y: visible;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
   }
   
   .table-row {

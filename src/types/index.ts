@@ -224,3 +224,39 @@ export interface RiskMetrics {
   concentrationRisk: number;
   correlationRisk: number;
 }
+
+// Position Webhook Types
+export interface PositionWebhookData {
+  asset: string;
+  entryPrice: number;
+  leverage: number;
+  amount: number;
+  positionSize: number;
+  timestamp: string;
+  direction: 'long' | 'short';
+  vaultAddress: string;
+  unrealizedPnl?: number;
+  currentPrice?: number;
+  marginUsed?: number;
+}
+
+export interface WebhookResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  error?: string;
+}
+
+export interface PositionNotification {
+  asset: string;
+  entryPrice: number;
+  leverage: number;
+  amount: number;
+  positionSize: number;
+  timestamp: string;
+  direction: 'long' | 'short';
+  vaultAddress: string;
+  unrealizedPnl?: number;
+  currentPrice?: number;
+  marginUsed?: number;
+}

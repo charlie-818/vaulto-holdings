@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './MetricCard.css';
 
 interface MetricCardProps {
@@ -23,8 +24,21 @@ const MetricCard: React.FC<MetricCardProps> = ({
   tooltip
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const isPositive = change && change.percent >= 0;
+  
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const handleInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -36,7 +50,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     setShowTooltip(false);
   };
 
-  // Handle click outside to close tooltip
+  // Handle click outside to close tooltip and lock body scroll on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
@@ -53,13 +67,23 @@ const MetricCard: React.FC<MetricCardProps> = ({
     if (showTooltip) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscapeKey);
+      
+      // Lock body scroll on mobile when tooltip is open
+      if (isMobile) {
+        document.body.style.overflow = 'hidden';
+      }
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
+      
+      // Restore body scroll
+      if (isMobile) {
+        document.body.style.overflow = '';
+      }
     };
-  }, [showTooltip]);
+  }, [showTooltip, isMobile]);
   
   return (
     <div className={`metric-card ${isDanger ? 'danger' : ''}`}>
@@ -74,25 +98,28 @@ const MetricCard: React.FC<MetricCardProps> = ({
             >
               ⓘ
             </button>
-            {showTooltip && (
-              <div className="tooltip-dialog">
-                <div className="tooltip-content">
-                  <div className="tooltip-header">
-                    <h4>{title}</h4>
-                    <button 
-                      className="tooltip-close" 
-                      onClick={handleTooltipClose}
-                      aria-label="Close tooltip"
-                      autoFocus
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="tooltip-body">
-                    {tooltip}
+            {showTooltip && !isMobile && (
+              <>
+                <div className="tooltip-backdrop" onClick={handleTooltipClose} />
+                <div className="tooltip-dialog">
+                  <div className="tooltip-content">
+                    <div className="tooltip-header">
+                      <h4>{title}</h4>
+                      <button 
+                        className="tooltip-close" 
+                        onClick={handleTooltipClose}
+                        aria-label="Close tooltip"
+                        autoFocus
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="tooltip-body">
+                      {tooltip}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         )}
@@ -116,6 +143,32 @@ const MetricCard: React.FC<MetricCardProps> = ({
           </span>
           <span className="change-period">{change.period}</span>
         </div>
+      )}
+      
+      {/* Mobile tooltip portal */}
+      {showTooltip && isMobile && tooltip && createPortal(
+        <>
+          <div className="tooltip-backdrop" onClick={handleTooltipClose} />
+          <div className="tooltip-dialog" ref={tooltipRef}>
+            <div className="tooltip-content">
+              <div className="tooltip-header">
+                <h4>{title}</h4>
+                <button 
+                  className="tooltip-close" 
+                  onClick={handleTooltipClose}
+                  aria-label="Close tooltip"
+                  autoFocus
+                >
+                  ×
+                </button>
+              </div>
+              <div className="tooltip-body">
+                {tooltip}
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
       )}
     </div>
   );

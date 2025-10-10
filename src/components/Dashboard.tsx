@@ -435,7 +435,7 @@ const Dashboard: React.FC = () => {
 
                 <ALPDisplay 
                   totalHoldings={alpBalance}
-                  currentAPY={30.5}
+                  currentAPY={30}
                   alpTokenUrl="https://www.asterdex.com/en/earn/alp"
                 />
               </div>

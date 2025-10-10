@@ -28,7 +28,7 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
           })} ALP</span>
         </div>
         <div className="alp-row">
-          <span className="alp-label">Target APY:</span>
+          <span className="alp-label">Historical APY:</span>
           <span className="alp-value alp-apy">{currentAPY.toFixed(0)}%</span>
         </div>
       </div>

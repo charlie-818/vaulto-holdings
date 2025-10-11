@@ -26,14 +26,14 @@ const DEFAULT_CONFIG: PriceServiceConfig = {
   retryDelay: 1500, // Longer delay between retries
   fallbackPrices: {
     ETH: {
-      current: 2450,
+      current: 3000,
       dailyChange: 0,
       dailyChangePercent: 0,
       timestamp: Date.now(),
       source: 'fallback'
     },
     BTC: {
-      current: 62000,
+      current: 80000,
       dailyChange: 0,
       dailyChangePercent: 0,
       timestamp: Date.now(),
@@ -104,6 +104,13 @@ class PriceCache {
       return null;
     }
     
+    return cached.data;
+  }
+
+  // Get cached price even if expired (for use as last-resort fallback)
+  getEvenIfExpired(key: string): CryptoPrice | null {
+    const cached = this.cache.get(key);
+    if (!cached) return null;
     return cached.data;
   }
 
@@ -502,6 +509,16 @@ export class PriceService {
         return price;
       } catch (fallbackError) {
         console.error('❌ All ETH sources failed:', fallbackError);
+        
+        // Try to use cached price even if expired as a better fallback than hardcoded
+        const cachedPrice = this.cache.getEvenIfExpired('ETH');
+        if (cachedPrice && cachedPrice.source !== 'fallback') {
+          console.log('⚠️ Using expired cached ETH price as fallback');
+          return cachedPrice;
+        }
+        
+        // Use hardcoded fallback as absolute last resort
+        console.log('⚠️ Using hardcoded ETH fallback price');
         const fallback = { ...this.config.fallbackPrices.ETH, timestamp: Date.now() };
         this.cache.set('ETH', fallback);
         return fallback;
@@ -542,6 +559,16 @@ export class PriceService {
         return price;
       } catch (fallbackError) {
         console.error('❌ All BTC sources failed:', fallbackError);
+        
+        // Try to use cached price even if expired as a better fallback than hardcoded
+        const cachedPrice = this.cache.getEvenIfExpired('BTC');
+        if (cachedPrice && cachedPrice.source !== 'fallback') {
+          console.log('⚠️ Using expired cached BTC price as fallback');
+          return cachedPrice;
+        }
+        
+        // Use hardcoded fallback as absolute last resort
+        console.log('⚠️ Using hardcoded BTC fallback price');
         const fallback = { ...this.config.fallbackPrices.BTC, timestamp: Date.now() };
         this.cache.set('BTC', fallback);
         return fallback;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { VaultMetrics, DataSource, ComprehensiveVaultMetrics, PositionNotification } from '../types';
 import { mockVaultMetrics, mockDataSources } from '../data/mockData';
 import { hyperliquidAPI } from '../services/api';
@@ -40,6 +40,16 @@ const Dashboard: React.FC = () => {
 
   // Use simple prices hook - non-blocking
   const { ethPrice, btcPrice } = useSimplePrices();
+  
+  // Use refs to store latest prices without causing re-renders
+  const ethPriceRef = useRef(ethPrice);
+  const btcPriceRef = useRef(btcPrice);
+  
+  // Update refs when prices change
+  useEffect(() => {
+    ethPriceRef.current = ethPrice;
+    btcPriceRef.current = btcPrice;
+  }, [ethPrice, btcPrice]);
 
   // Fetch ALP token balance from Etherscan
   const fetchALPBalance = React.useCallback(async () => {
@@ -149,11 +159,11 @@ const Dashboard: React.FC = () => {
           } catch (error) {
             console.log(`Failed to get ${coin} price from Hyperliquid API:`, error);
             
-            // Fallback to known crypto prices for major assets
+            // Fallback to known crypto prices for major assets (using refs to avoid dependency issues)
             if (coin === 'ETH') {
-              return ethPrice?.current || 2450;
+              return ethPriceRef.current?.current || 3000;
             } else if (coin === 'BTC') {
-              return btcPrice?.current || 112000;
+              return btcPriceRef.current?.current || 80000;
             }
             
             // Return 0 if no price can be found
@@ -236,7 +246,7 @@ const Dashboard: React.FC = () => {
       setError('Failed to load vault data. Using cached data.');
       // Keep existing data if API fails
     }
-  }, [ethPrice, btcPrice]);
+  }, []); // Empty dependency array - use refs to access latest prices
 
   // Function to send position webhook (automatic only)
   const sendPositionWebhook = async (positionData: PositionNotification): Promise<void> => {

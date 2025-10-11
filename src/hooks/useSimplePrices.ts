@@ -30,10 +30,9 @@ export function useSimplePrices(): UsePricesReturn {
         }
       } catch (error) {
         console.error('Price fetch error:', error);
-        // Set fallback prices
+        // Service layer handles fallbacks via localStorage and hardcoded values
+        // Just set loading to false and let the service return whatever fallback it has
         if (mounted) {
-          setEthPrice({ current: 2450, dailyChangePercent: 0 });
-          setBtcPrice({ current: 62000, dailyChangePercent: 0 });
           setIsLoading(false);
         }
       }

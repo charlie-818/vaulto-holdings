@@ -9,15 +9,58 @@ export interface SimplePrice {
   dailyChangePercent: number;
 }
 
-// Simple fallback prices - used immediately if fetch fails
+// localStorage key for persisting last known good prices
+const LAST_KNOWN_PRICES_KEY = 'vaulto_last_known_prices';
+
+// Simple fallback prices - used only if localStorage is empty and fetch fails
 const FALLBACK_PRICES = {
-  ETH: { current: 2450, dailyChangePercent: 0 },
-  BTC: { current: 62000, dailyChangePercent: 0 }
+  ETH: { current: 3000, dailyChangePercent: 0 },
+  BTC: { current: 80000, dailyChangePercent: 0 }
 };
 
 // Simple in-memory cache (30 seconds)
 let ethCache: { price: SimplePrice; expiry: number } | null = null;
 let btcCache: { price: SimplePrice; expiry: number } | null = null;
+
+/**
+ * Save last known good prices to localStorage
+ */
+function saveLastKnownPrices(eth?: SimplePrice, btc?: SimplePrice): void {
+  try {
+    const stored = loadLastKnownPrices();
+    const updated = {
+      eth: eth || stored.eth,
+      btc: btc || stored.btc,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(LAST_KNOWN_PRICES_KEY, JSON.stringify(updated));
+  } catch (error) {
+    console.warn('Failed to save last known prices:', error);
+  }
+}
+
+/**
+ * Load last known good prices from localStorage
+ */
+function loadLastKnownPrices(): { eth: SimplePrice | null; btc: SimplePrice | null; timestamp: number } {
+  try {
+    const stored = localStorage.getItem(LAST_KNOWN_PRICES_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Use cached prices if less than 24 hours old
+      if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+        return {
+          eth: parsed.eth || null,
+          btc: parsed.btc || null,
+          timestamp: parsed.timestamp
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load last known prices:', error);
+  }
+  return { eth: null, btc: null, timestamp: 0 };
+}
 
 /**
  * Fetch ETH price - simple, non-blocking
@@ -56,9 +99,22 @@ export async function getETHPrice(): Promise<SimplePrice> {
     // Cache for 30 seconds
     ethCache = { price, expiry: Date.now() + 30000 };
     
+    // Save to localStorage for persistence
+    saveLastKnownPrices(price, undefined);
+    
     return price;
   } catch (error) {
-    console.log('ETH price fetch failed, using fallback:', error);
+    console.log('ETH price fetch failed, trying fallbacks:', error);
+    
+    // Try localStorage first
+    const lastKnown = loadLastKnownPrices();
+    if (lastKnown.eth) {
+      console.log('Using last known ETH price from localStorage');
+      return lastKnown.eth;
+    }
+    
+    // Use hardcoded fallback as last resort
+    console.log('Using hardcoded ETH fallback price');
     return FALLBACK_PRICES.ETH;
   }
 }
@@ -100,9 +156,22 @@ export async function getBTCPrice(): Promise<SimplePrice> {
     // Cache for 30 seconds
     btcCache = { price, expiry: Date.now() + 30000 };
     
+    // Save to localStorage for persistence
+    saveLastKnownPrices(undefined, price);
+    
     return price;
   } catch (error) {
-    console.log('BTC price fetch failed, using fallback:', error);
+    console.log('BTC price fetch failed, trying fallbacks:', error);
+    
+    // Try localStorage first
+    const lastKnown = loadLastKnownPrices();
+    if (lastKnown.btc) {
+      console.log('Using last known BTC price from localStorage');
+      return lastKnown.btc;
+    }
+    
+    // Use hardcoded fallback as last resort
+    console.log('Using hardcoded BTC fallback price');
     return FALLBACK_PRICES.BTC;
   }
 }

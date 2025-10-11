@@ -43,7 +43,7 @@ const Footer: React.FC<FooterProps> = ({ dataSources }) => {
             </div>
             <div className="footer-site-links">
               <a href="https://vaulto.ai" target="_blank" rel="noopener noreferrer">Info</a>
-              <a href="https://vaulto.fi" target="_blank" rel="noopener noreferrer">Platform</a>
+              <a href="https://vaulto.fi" target="_blank" rel="noopener noreferrer">Search</a>
             </div>
           </div>
         </div>

@@ -26,17 +26,17 @@
 }
 
 .alp-logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
 .alp-title {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .alp-content {
@@ -135,7 +135,7 @@
   }
   
   .alp-title {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   
   .alp-row {
@@ -173,12 +173,12 @@
   }
 
   .alp-logo {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
   }
   
   .alp-title {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
   
   .alp-row {

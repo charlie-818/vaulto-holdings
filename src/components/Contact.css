@@ -28,18 +28,21 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+  width: 100%;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: 100%;
 }
 
 .form-group label {
@@ -168,68 +171,141 @@
 }
 
 @media (max-width: 768px) {
+  .contact-page {
+    width: 100% !important;
+  }
+  
   .main-content {
-    padding: 0.5rem;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
   
   .contact-form-container {
-    padding: 1rem;
-    max-width: 100%;
-    margin: 1rem 0;
-    border-radius: 8px;
+    padding: 1.5rem !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .contact-form {
+    gap: 1.5rem !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   
   .form-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 1rem !important;
+    width: 100% !important;
+  }
+  
+  .form-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  .form-group label {
+    width: 100% !important;
   }
   
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 0.875rem;
-    font-size: 0.8rem;
-    min-height: 44px;
-    width: 100%;
+    padding: 0.875rem !important;
+    font-size: 0.9rem !important;
+    min-height: 48px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
   }
   
   .form-group textarea {
-    min-height: 100px;
+    min-height: 120px !important;
   }
   
-  .contact-form {
-    gap: 1.5rem;
+  .submit-button {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1rem !important;
+    font-size: 1rem !important;
+    box-sizing: border-box !important;
   }
 }
 
 @media (max-width: 480px) {
+  .contact-page {
+    width: 100% !important;
+  }
+  
   .main-content {
-    padding: 0.25rem;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
   
   .contact-form-container {
-    padding: 0.75rem;
-    margin: 0.5rem 0;
+    padding: 1.5rem !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .contact-form {
+    gap: 1.5rem !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  .form-row {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 1rem !important;
+    width: 100% !important;
+  }
+  
+  .form-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem !important;
+    width: 100% !important;
   }
   
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 0.75rem;
-    font-size: 0.85rem;
-    min-height: 48px;
+    padding: 1rem !important;
+    font-size: 1rem !important;
+    min-height: 52px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
   }
   
   .form-group textarea {
-    min-height: 120px;
-  }
-  
-  .form-group label {
-    font-size: 0.75rem;
+    min-height: 140px !important;
   }
   
   .submit-button {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9rem;
+    padding: 1.125rem !important;
+    font-size: 1.05rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 }

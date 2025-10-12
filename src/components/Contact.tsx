@@ -9,7 +9,6 @@ interface FormData {
   contactName: string;
   email: string;
   phone: string;
-  assetsUnderManagement: string;
   message: string;
 }
 
@@ -19,7 +18,6 @@ const Contact: React.FC = () => {
     contactName: '',
     email: '',
     phone: '',
-    assetsUnderManagement: '',
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -121,26 +119,6 @@ const Contact: React.FC = () => {
                     onChange={handleChange}
                   />
                 </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="assetsUnderManagement">Assets Under Management *</label>
-                <select
-                  id="assetsUnderManagement"
-                  name="assetsUnderManagement"
-                  value={formData.assetsUnderManagement}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select range</option>
-                  <option value="under-1m">Under $1M</option>
-                  <option value="1m-5m">$1M - $5M</option>
-                  <option value="5m-10m">$5M - $10M</option>
-                  <option value="10m-25m">$10M - $25M</option>
-                  <option value="25m-50m">$25M - $50M</option>
-                  <option value="50m-100m">$50M - $100M</option>
-                  <option value="over-100m">Over $100M</option>
-                </select>
               </div>
 
               <div className="form-group">

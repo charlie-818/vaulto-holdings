@@ -378,6 +378,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+  margin-top: -0.25rem;
 }
 
 .vault-logo {
@@ -746,6 +747,7 @@
     justify-content: flex-start;
     text-align: left;
     margin-bottom: 0.5rem;
+    margin-top: -0.25rem;
   }
 
   .vault-logo {
@@ -928,6 +930,7 @@
     justify-content: flex-start;
     text-align: left;
     margin-bottom: 0.5rem;
+    margin-top: -0.25rem;
   }
 
   .vault-logo {

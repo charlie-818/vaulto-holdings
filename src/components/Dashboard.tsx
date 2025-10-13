@@ -463,7 +463,7 @@ const Dashboard: React.FC = () => {
               />
               
               <MetricCard
-                title="Total Vault Value"
+                title="Total Value"
                 value={`$${Math.round(vaultMetrics.totalVaultValue.usd).toLocaleString()}`}
                 tooltip="Total Vault Value represents the gross value of all assets under management, including leveraged positions and derivatives. Unlike NAV, this includes the full notional value of leveraged positions. For example, if the vault has $10,000 in capital with 2x leverage on ETH, the total vault value would be $20,000, while NAV would be $10,000 plus any unrealized gains or losses."
               />

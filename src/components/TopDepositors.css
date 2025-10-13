@@ -269,8 +269,9 @@
   }
   
   .table-header-info {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
     margin-bottom: 20px;
   }
@@ -278,13 +279,14 @@
   .section-title {
     font-size: 1.25rem;
     text-align: left;
+    flex-shrink: 0;
   }
   
   .depositors-summary {
     flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-    width: 100%;
+    gap: 4px;
+    align-items: flex-end;
+    text-align: right;
   }
   
   .total-count,
@@ -295,6 +297,9 @@
   .depositors-table {
     padding: 1rem;
     width: 100%;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
   }
   
   .table-header {
@@ -311,14 +316,13 @@
   
   .table-row {
     display: block;
-    margin-bottom: 16px;
-    background-color: var(--background-secondary);
-    border-radius: 8px;
-    padding: 16px;
-    border: 1px solid var(--border-color);
+    margin-bottom: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
   }
   
   .table-row:last-child {
+    border-bottom: none;
     margin-bottom: 0;
   }
   
@@ -326,20 +330,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 6px 0;
     font-size: 0.85rem;
   }
   
   .table-cell:last-child {
-    border-bottom: none;
+    padding-bottom: 0;
   }
   
   .table-cell.rank {
     justify-content: flex-start;
     font-weight: 600;
     color: var(--text-primary);
-    padding: 4px 0;
+    padding: 6px 0;
+    padding-top: 0;
   }
   
   .table-cell.rank:before {
@@ -347,10 +351,6 @@
     font-weight: 500;
     color: var(--text-secondary);
     margin-right: 6px;
-  }
-  
-  .table-cell.address {
-    padding: 4px 0;
   }
   
   .table-cell.address:before {
@@ -425,7 +425,7 @@
   }
   
   .equity-percentage {
-    font-size: 0.7rem;
+    display: none;
   }
   
   .pnl-value {
@@ -454,7 +454,7 @@
   }
   
   .table-header-info {
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 16px;
   }
   
@@ -463,26 +463,37 @@
   }
   
   .depositors-summary {
-    gap: 6px;
+    gap: 3px;
   }
   
   .total-count,
   .total-equity {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   
   .depositors-table {
     padding: 0.75rem;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
   }
   
   .table-row {
-    margin-bottom: 12px;
-    padding: 12px;
+    margin-bottom: 10px;
+    padding: 10px 0;
   }
   
   .table-cell {
-    padding: 6px 0;
+    padding: 5px 0;
     font-size: 0.8rem;
+  }
+  
+  .table-cell:last-child {
+    padding-bottom: 0;
+  }
+  
+  .table-cell.rank {
+    padding-top: 0;
   }
   
   .table-cell.rank:before,
@@ -516,7 +527,7 @@
   }
   
   .equity-percentage {
-    font-size: 0.65rem;
+    display: none;
   }
   
   .pnl-value {

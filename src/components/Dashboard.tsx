@@ -379,7 +379,7 @@ const Dashboard: React.FC = () => {
             <div className="hero-content">
               <div className="hero-prices">
                 <div className="hero-price eth-price-box">
-                  <div className="price-label">Ethereum (ETH)</div>
+                  <div className="price-label">Ethereum</div>
                   {ethPrice ? (
                     <>
                       <div className="price-value">${Math.round(ethPrice.current).toLocaleString('en-US')}</div>
@@ -395,7 +395,7 @@ const Dashboard: React.FC = () => {
                   )}
                 </div>
                 <div className="hero-price btc-price-box">
-                  <div className="price-label">Bitcoin (BTC)</div>
+                  <div className="price-label">Bitcoin</div>
                   {btcPrice ? (
                     <>
                       <div className="price-value">${Math.round(btcPrice.current).toLocaleString('en-US')}</div>
@@ -457,21 +457,21 @@ const Dashboard: React.FC = () => {
           <section id="metrics" className="primary-metrics">
             <div className="metrics-grid">
               <MetricCard
-                title="30D APR"
-                value={`${comprehensiveMetrics?.vaultDetails?.apr ? (comprehensiveMetrics.vaultDetails.apr * 100).toFixed(2) : '0.00'}%`}
-                tooltip="30-Day Annual Percentage Rate (APR) represents the expected annual return on investment for vault depositors based on the last 30 days of performance. This is calculated based on the vault's recent historical performance and current strategy."
-              />
-              
-              <MetricCard
                 title="Vault NAV"
-                value={`$${vaultMetrics.vaultNav.usd.toFixed(2)}`}
+                value={`$${Math.round(vaultMetrics.vaultNav.usd).toLocaleString()}`}
                 tooltip="Net Asset Value (NAV) represents the total value of the vault's assets minus liabilities. This is the fundamental measure of the vault's worth, calculated by summing all positions, cash, and other assets, then subtracting any outstanding debts or obligations."
               />
               
               <MetricCard
                 title="Total Vault Value"
-                value={`$${vaultMetrics.totalVaultValue.usd.toFixed(2)}`}
+                value={`$${Math.round(vaultMetrics.totalVaultValue.usd).toLocaleString()}`}
                 tooltip="Total Vault Value represents the gross value of all assets under management, including leveraged positions and derivatives. Unlike NAV, this includes the full notional value of leveraged positions. For example, if the vault has $10,000 in capital with 2x leverage on ETH, the total vault value would be $20,000, while NAV would be $10,000 plus any unrealized gains or losses."
+              />
+              
+              <MetricCard
+                title="30D APR"
+                value={`${comprehensiveMetrics?.vaultDetails?.apr ? (comprehensiveMetrics.vaultDetails.apr * 100).toFixed(2) : '0.00'}%`}
+                tooltip="30-Day Annual Percentage Rate (APR) represents the expected annual return on investment for vault depositors based on the last 30 days of performance. This is calculated based on the vault's recent historical performance and current strategy."
               />
               
               <MetricCard

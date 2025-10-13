@@ -16,7 +16,7 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
     <div className="alp-display">
       <div className="alp-header">
         <img src="/aster.png" alt="Aster" className="alp-logo" />
-        <div className="alp-title">Liquidity Pool</div>
+        <div className="alp-title">Liquidity</div>
       </div>
       
       <div className="alp-content">

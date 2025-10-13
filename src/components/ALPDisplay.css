@@ -123,23 +123,30 @@
 @media (max-width: 768px) {
   .alp-display {
     min-width: auto;
-    width: calc(100vw - 2rem);
+    width: 102%;
     height: auto;
     min-height: 180px;
     padding: 1.25rem;
+    margin-left: -0.25rem;
   }
   
   .alp-header {
-    justify-content: center;
-    text-align: center;
+    justify-content: flex-start;
+    text-align: left;
   }
   
   .alp-title {
     font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .alp-content {
+    gap: 0rem;
+    margin-top: 0.5rem;
   }
   
   .alp-row {
-    padding: 0.5rem 0;
+    padding: 0.2rem 0;
     flex-wrap: nowrap;
   }
   
@@ -163,13 +170,16 @@
 
 @media (max-width: 480px) {
   .alp-display {
-    width: calc(100vw - 1.5rem);
+    width: 100%;
     min-height: 160px;
     padding: 1rem;
+    margin-left: 0.25rem;
   }
   
   .alp-header {
     margin-bottom: 0.75rem;
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .alp-logo {
@@ -179,10 +189,16 @@
   
   .alp-title {
     font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  
+  .alp-content {
+    gap: 0rem;
+    margin-top: 0.1rem;
   }
   
   .alp-row {
-    padding: 0.4rem 0;
+    padding: 0.2rem 0;
     flex-wrap: nowrap;
   }
   

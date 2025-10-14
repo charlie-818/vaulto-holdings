@@ -374,7 +374,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Hero Section with ETH/BTC Prices and Vault Address */}
+          {/* Hero Section with ETH/BTC Prices */}
           <section className="hero-section">
             <div className="hero-content">
               <div className="hero-prices">
@@ -412,11 +412,25 @@ const Dashboard: React.FC = () => {
                 </div>
 
               </div>
-              <div className="hero-secondary">
+              <div className="hero-secondary hero-secondary-desktop">
                 <div className="vault-info">
                   <div className="vault-header-with-logo">
-                    <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
-                    <div className="vault-label">Vault</div>
+                    <div className="vault-label">
+                      <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
+                      Vault
+                    </div>
+                    <a 
+                      href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="vault-link-button"
+                      title="View vault on Hyperliquid"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                      </svg>
+                      View on Hyperliquid
+                    </a>
                   </div>
                   <div className="vault-address">
                     <span className="address-text">0xba9e...497a</span>
@@ -541,6 +555,59 @@ const Dashboard: React.FC = () => {
             />
           )}
 
+          {/* Vault and ALP Info for Mobile (appears after Top Depositors) */}
+          <section className="hero-secondary-mobile">
+            <div className="vault-info">
+              <div className="vault-header-with-logo">
+                <div className="vault-label">
+                  <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
+                  Vault
+                </div>
+                <a 
+                  href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="vault-link-button"
+                  title="View vault on Hyperliquid"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                  </svg>
+                  View on Hyperliquid
+                </a>
+              </div>
+              <div className="vault-address">
+                <span className="address-text">0xba9e...497a</span>
+                <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Full Address: 0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="vault-link">
+                <a 
+                  href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="vault-link-button"
+                  title="View vault on Hyperliquid"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                  </svg>
+                  View on Hyperliquid
+                </a>
+              </div>
+            </div>
+
+            <ALPDisplay 
+              totalHoldings={alpBalance}
+              currentAPY={30}
+              alpTokenUrl="https://www.asterdex.com/en/earn/alp"
+            />
+          </section>
+
         </div>
       </main>
       
@@ -550,3 +617,5 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+
+

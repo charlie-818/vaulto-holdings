@@ -166,6 +166,10 @@
   align-items: stretch;
 }
 
+.hero-secondary-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .hero-content {
     flex-direction: column;
@@ -173,13 +177,18 @@
     align-items: stretch;
   }
 
-  .hero-secondary {
+  .hero-secondary-desktop {
+    display: none !important;
+  }
+  
+  .hero-secondary-mobile {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 0.75rem;
-    width: 100%;
-    margin: 0 auto;
-    max-width: 100%;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    padding: 0 1rem;
+    margin-top: 1.5rem;
   }
   
   .hero-prices {
@@ -379,6 +388,7 @@
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   margin-top: -0.25rem;
+  justify-content: flex-start;
 }
 
 .vault-logo {
@@ -393,6 +403,9 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .vault-address {
@@ -444,6 +457,10 @@
 
 .vault-link {
   margin-top: 0.75rem;
+}
+
+.vault-header-with-logo .vault-link-button {
+  display: none;
 }
 
 .vault-link-button {
@@ -728,11 +745,11 @@
     width: 100%;
     max-width: none;
     height: auto;
-    min-height: 160px;
-    padding: 1rem;
+    min-height: 120px;
+    padding: 0.875rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     text-align: left;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -744,20 +761,30 @@
   }
   
   .vault-header-with-logo {
-    justify-content: flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     text-align: left;
     margin-bottom: 0.5rem;
-    margin-top: -0.25rem;
+    margin-top: 0;
+    width: 100%;
+  }
+  
+  .vault-header-with-logo .vault-link-button {
+    display: flex;
   }
 
   .vault-logo {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
   .vault-label {
     font-size: 0.8rem;
     text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .vault-address {
@@ -765,8 +792,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
+    margin-bottom: 0;
+    padding: 0.4rem 0.5rem;
     width: 100%;
     text-align: left;
     background-color: var(--background-color);
@@ -775,7 +802,7 @@
   }
   
   .address-text {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     word-break: keep-all;
     white-space: nowrap;
     line-height: 1.4;
@@ -784,29 +811,34 @@
   }
   
   .copy-button {
-    min-width: 32px;
-    min-height: 32px;
-    padding: 0.25rem;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0.2rem;
     touch-action: manipulation;
+  }
+  
+  .copy-button svg {
+    width: 14px;
+    height: 14px;
   }
   
   .vault-link {
-    margin-top: auto;
-    width: 100%;
+    display: none;
   }
   
   .vault-link-button {
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    width: 100%;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.65rem;
+    width: auto;
     justify-content: center;
     touch-action: manipulation;
     white-space: nowrap;
+    border-radius: 4px;
   }
   
   .vault-link-button svg {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
   }
   
   .price-label {
@@ -896,8 +928,18 @@
     gap: 1rem;
   }
   
-  .hero-secondary {
+  .hero-secondary-desktop {
+    display: none !important;
+  }
+  
+  .hero-secondary-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 0.75rem;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    padding: 0 0.75rem;
+    margin-top: 1rem;
   }
   
   .hero-prices {
@@ -914,8 +956,8 @@
   .vault-info {
     width: 100%;
     max-width: none;
-    min-height: 155px;
-    padding: 1rem;
+    min-height: 110px;
+    padding: 0.875rem;
     align-items: flex-start;
     text-align: left;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -927,25 +969,35 @@
   }
   
   .vault-header-with-logo {
-    justify-content: flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     text-align: left;
     margin-bottom: 0.5rem;
-    margin-top: -0.25rem;
+    margin-top: 0;
+    width: 100%;
+  }
+  
+  .vault-header-with-logo .vault-link-button {
+    display: flex;
   }
 
   .vault-logo {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
   }
 
   .vault-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .vault-address {
-    padding: 0.4rem 0.5rem;
-    margin-bottom: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    margin-bottom: 0;
     gap: 0.5rem;
     justify-content: space-between;
     text-align: left;
@@ -955,32 +1007,38 @@
   }
   
   .address-text {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-align: left;
     font-weight: 700;
   }
   
   .copy-button {
-    min-width: 28px;
-    min-height: 28px;
-    padding: 0.2rem;
+    min-width: 26px;
+    min-height: 26px;
+    padding: 0.15rem;
   }
   
   .copy-button svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
+  }
+  
+  .vault-link {
+    display: none;
   }
   
   .vault-link-button {
-    padding: 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.6rem;
     white-space: nowrap;
     justify-content: center;
+    width: auto;
+    border-radius: 4px;
   }
   
   .vault-link-button svg {
-    width: 11px;
-    height: 11px;
+    width: 9px;
+    height: 9px;
   }
   
   .price-label {

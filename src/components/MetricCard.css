@@ -6,7 +6,10 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   position: relative;
-  min-height: 120px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .metric-card:hover {
@@ -229,6 +232,7 @@
 @media (max-width: 1024px) {
   .metric-card {
     padding: 1.5rem;
+    height: 135px;
   }
   
   .metric-value {
@@ -249,7 +253,7 @@
 @media (max-width: 768px) {
   .metric-card {
     padding: 1.25rem;
-    min-height: 100px;
+    height: 130px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -382,7 +386,7 @@
 @media (max-width: 480px) {
   .metric-card {
     padding: 1rem;
-    min-height: 90px;
+    height: 120px;
     width: 100%;
   }
   

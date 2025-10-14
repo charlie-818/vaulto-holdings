@@ -15,8 +15,22 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
   return (
     <div className="alp-display">
       <div className="alp-header">
-        <img src="/aster.png" alt="Aster" className="alp-logo" />
-        <div className="alp-title">Liquidity</div>
+        <div className="alp-title">
+          <img src="/aster.png" alt="Aster" className="alp-logo" />
+          Liquidity
+        </div>
+        <a 
+          href={alpTokenUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="alp-link"
+          title="View ALP token page"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+          View ALP Pool
+        </a>
       </div>
       
       <div className="alp-content">

@@ -23,6 +23,11 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
+  justify-content: flex-start;
+}
+
+.alp-header .alp-link {
+  display: none;
 }
 
 .alp-logo {
@@ -37,6 +42,9 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .alp-content {
@@ -125,8 +133,8 @@
     min-width: auto;
     width: 100%;
     height: auto;
-    min-height: 160px;
-    padding: 1rem;
+    min-height: 120px;
+    padding: 0.875rem;
     margin-left: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1.5px solid var(--border-color);
@@ -137,9 +145,16 @@
   }
   
   .alp-header {
-    justify-content: flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     text-align: left;
     margin-bottom: 0.5rem;
+    width: 100%;
+  }
+  
+  .alp-header .alp-link {
+    display: flex;
   }
   
   .alp-logo {
@@ -150,6 +165,9 @@
   .alp-title {
     font-size: 0.8rem;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .alp-content {
@@ -164,42 +182,44 @@
   }
   
   .alp-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     white-space: nowrap;
   }
   
   .alp-value {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
   
   .alp-apy {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
   
   .alp-footer {
-    padding-top: 0.5rem;
+    display: none;
   }
   
   .alp-link {
-    padding: 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.65rem;
     touch-action: manipulation;
     white-space: nowrap;
     justify-content: center;
+    width: auto;
+    border-radius: 4px;
   }
   
   .alp-link svg {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .alp-display {
     width: 100%;
-    min-height: 155px;
-    padding: 1rem;
+    min-height: 110px;
+    padding: 0.875rem;
     margin-left: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1.5px solid var(--border-color);
@@ -210,9 +230,16 @@
   }
   
   .alp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.5rem;
-    justify-content: flex-start;
     text-align: left;
+    width: 100%;
+  }
+  
+  .alp-header .alp-link {
+    display: flex;
   }
 
   .alp-logo {
@@ -221,8 +248,11 @@
   }
   
   .alp-title {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .alp-content {
@@ -237,33 +267,35 @@
   }
   
   .alp-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     white-space: nowrap;
   }
   
   .alp-value {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     white-space: nowrap;
   }
   
   .alp-apy {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   
   .alp-footer {
-    padding-top: 0.5rem;
+    display: none;
   }
   
   .alp-link {
-    padding: 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.6rem;
     white-space: nowrap;
     justify-content: center;
+    width: auto;
+    border-radius: 4px;
   }
   
   .alp-link svg {
-    width: 11px;
-    height: 11px;
+    width: 9px;
+    height: 9px;
   }
 }
 

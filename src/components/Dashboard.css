@@ -144,7 +144,7 @@
 .hero-section {
   background-color: var(--background-color);
   padding: 3rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: -1rem;
   text-align: center;
 }
 

@@ -12,10 +12,16 @@ const Header: React.FC<HeaderProps> = () => {
     <header className="header">
       <div className="container">
         <div className="header-content">
-          <Link to="/" className="logo">
-            <img src="/vlt-logo.png" alt="Vaulto Logo" className="logo-image" />
-            <h1>Treasury</h1>
-          </Link>
+          <div className="logo-section">
+            <Link to="/" className="logo">
+              <img src="/vlt-logo.png" alt="Vaulto Logo" className="logo-image" />
+              <h1>Treasury</h1>
+            </Link>
+              <div className="page-links">
+                <a href="https://app.vaulto.ai" target="_blank" rel="noopener noreferrer" className="page-link">Swap</a>
+                <a href="https://search.vaulto.ai" target="_blank" rel="noopener noreferrer" className="page-link">Search</a>
+              </div>
+          </div>
           
 
           

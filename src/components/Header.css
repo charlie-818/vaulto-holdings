@@ -30,6 +30,12 @@
 
 
 
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -60,6 +66,27 @@
   font-weight: 300;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.page-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-link {
+  text-decoration: none;
+  color: #cccccc;
+  font-weight: 400;
+  font-size: 0.8rem;
+  transition: color 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.page-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-list {
@@ -135,6 +162,10 @@
     min-height: 60px;
   }
   
+  .logo-section {
+    gap: 0.75rem;
+  }
+  
   .logo {
     gap: 0.5rem;
   }
@@ -145,6 +176,14 @@
   
   .logo h1 {
     font-size: 1.2rem;
+  }
+  
+  .page-link {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
   }
   
 
@@ -172,12 +211,24 @@
     min-height: 55px;
   }
   
+  .logo-section {
+    gap: 0.5rem;
+  }
+  
   .logo-image {
     height: 36px;
   }
   
   .logo h1 {
     font-size: 1.1rem;
+  }
+  
+  .page-link {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.5rem;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
   }
   
 

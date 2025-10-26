@@ -692,7 +692,7 @@
   .hero-section {
     padding: 2rem 1rem 1rem 1rem;
     margin-bottom: 0.5rem;
-    margin-top: 1.5rem; /* Extra space above for fixed header on mobile */
+    margin-top: 3rem; /* Increased spacing above for new header on mobile */
     width: 100vw;
     margin-left: calc(-50vw + 50%);
   }
@@ -912,7 +912,7 @@
   .hero-section {
     padding: 1.5rem 0.75rem 0.75rem 0.75rem;
     margin-bottom: 0.5rem;
-    margin-top: 1rem; /* Extra space above for fixed header on small mobile */
+    margin-top: 2.5rem; /* Increased spacing above for new header on small mobile */
     width: 100vw;
     margin-left: calc(-50vw + 50%);
   }

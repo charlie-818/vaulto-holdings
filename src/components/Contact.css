@@ -13,6 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  padding-top: calc(70px + 2rem); /* Account for fixed header height */
 }
 
 .contact-form-container {
@@ -131,6 +132,10 @@
 
 /* Responsive Design */
 @media (min-width: 1200px) {
+  .main-content {
+    padding-top: calc(70px + 2rem); /* Account for fixed header height */
+  }
+  
   .contact-form-container {
     max-width: 1200px;
     padding: 3rem;
@@ -151,6 +156,10 @@
 }
 
 @media (min-width: 1600px) {
+  .main-content {
+    padding-top: calc(70px + 2rem); /* Account for fixed header height */
+  }
+  
   .contact-form-container {
     max-width: 1400px;
     padding: 4rem;
@@ -170,6 +179,12 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .main-content {
+    padding-top: calc(60px + 2rem); /* Account for tablet header height */
+  }
+}
+
 @media (max-width: 768px) {
   .contact-page {
     width: 100% !important;
@@ -177,6 +192,7 @@
   
   .main-content {
     padding: 0 !important;
+    padding-top: calc(60px + 1rem) !important; /* Account for tablet header height */
     margin: 0 !important;
     width: 100% !important;
   }
@@ -247,6 +263,7 @@
   
   .main-content {
     padding: 0 !important;
+    padding-top: calc(55px + 0.5rem) !important; /* Account for mobile header height */
     margin: 0 !important;
     width: 100% !important;
   }

@@ -416,8 +416,7 @@ const Dashboard: React.FC = () => {
                 <div className="vault-info">
                   <div className="vault-header-with-logo">
                     <div className="vault-label">
-                      <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
-                      Vault
+                      Hyperliquid Vault
                     </div>
                     <a 
                       href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
@@ -560,8 +559,7 @@ const Dashboard: React.FC = () => {
             <div className="vault-info">
               <div className="vault-header-with-logo">
                 <div className="vault-label">
-                  <img src="/hyper.png" alt="Hyperliquid" className="vault-logo" />
-                  Vault
+                  Hyperliquid Vault
                 </div>
                 <a 
                   href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 

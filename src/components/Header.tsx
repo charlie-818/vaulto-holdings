@@ -14,7 +14,7 @@ const Header: React.FC<HeaderProps> = () => {
         <div className="header-content">
           <Link to="/" className="logo">
             <img src="/vlt-logo.png" alt="Vaulto Logo" className="logo-image" />
-            <h1>Holdings</h1>
+            <h1>Treasury</h1>
           </Link>
           
 

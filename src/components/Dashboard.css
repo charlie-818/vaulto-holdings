@@ -391,21 +391,12 @@
   justify-content: flex-start;
 }
 
-.vault-logo {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-}
-
 .vault-label {
   font-size: 1.1rem;
   color: var(--text-secondary);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .vault-address {
@@ -457,6 +448,8 @@
 
 .vault-link {
   margin-top: 0.75rem;
+  position: relative;
+  top: 0.625rem;
 }
 
 .vault-header-with-logo .vault-link-button {
@@ -774,17 +767,9 @@
     display: flex;
   }
 
-  .vault-logo {
-    width: 40px;
-    height: 40px;
-  }
-
   .vault-label {
     font-size: 0.8rem;
     text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   
   .vault-address {
@@ -982,17 +967,9 @@
     display: flex;
   }
 
-  .vault-logo {
-    width: 36px;
-    height: 36px;
-  }
-
   .vault-label {
     font-size: 0.7rem;
     text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   
   .vault-address {

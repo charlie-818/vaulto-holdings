@@ -23,17 +23,12 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
+  margin-top: 0.3rem;
   justify-content: flex-start;
 }
 
 .alp-header .alp-link {
   display: none;
-}
-
-.alp-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
 }
 
 .alp-title {
@@ -42,9 +37,6 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .alp-content {
@@ -52,7 +44,7 @@
   flex-direction: column;
   gap: 0.5rem;
   flex: 1;
-  margin-top: 0.5rem;
+  margin-top: 0.8125rem;
 }
 
 .alp-row {
@@ -157,17 +149,9 @@
     display: flex;
   }
   
-  .alp-logo {
-    width: 40px;
-    height: 40px;
-  }
-  
   .alp-title {
     font-size: 0.8rem;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   
   .alp-content {
@@ -241,18 +225,10 @@
   .alp-header .alp-link {
     display: flex;
   }
-
-  .alp-logo {
-    width: 36px;
-    height: 36px;
-  }
   
   .alp-title {
     font-size: 0.7rem;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   
   .alp-content {

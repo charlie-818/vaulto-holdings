@@ -16,8 +16,7 @@ const ALPDisplay: React.FC<ALPDisplayProps> = ({
     <div className="alp-display">
       <div className="alp-header">
         <div className="alp-title">
-          <img src="/aster.png" alt="Aster" className="alp-logo" />
-          Liquidity
+          Aster Liquidity
         </div>
         <a 
           href={alpTokenUrl}

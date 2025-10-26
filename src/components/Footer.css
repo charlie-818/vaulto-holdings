@@ -188,8 +188,8 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid #333333;
   border-radius: 6px;
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #1a1a1a;
+  color: #ffffff;
   font-size: 0.85rem;
   min-width: 200px;
   outline: none;
@@ -201,7 +201,7 @@
 }
 
 .email-input::placeholder {
-  color: #666666;
+  color: #999999;
 }
 
 .email-submit-btn {

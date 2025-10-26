@@ -556,54 +556,47 @@ const Dashboard: React.FC = () => {
 
           {/* Vault and ALP Info for Mobile (appears after Top Depositors) */}
           <section className="hero-secondary-mobile">
-            <div className="vault-info">
-              <div className="vault-header-with-logo">
-                <div className="vault-label">
-                  Hyperliquid Vault
+            <div className="combined-vault-alp-info">
+              <div className="vault-section-compact">
+                <div className="vault-section-header">
+                  <div className="vault-section-title">Hyperliquid Vault</div>
+                  <a href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" target="_blank" rel="noopener noreferrer" className="section-link" title="View on Hyperliquid">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                    </svg>
+                  </a>
                 </div>
-                <a 
-                  href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="vault-link-button"
-                  title="View vault on Hyperliquid"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                  </svg>
-                  View on Hyperliquid
-                </a>
-              </div>
-              <div className="vault-address">
-                <span className="address-text">0xba9e...497a</span>
-                <button className="copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Full Address: 0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                  </svg>
-                </button>
+                <div className="vault-compact-address">
+                  <span className="compact-address-text">0xba9e...497a</span>
+                  <button className="compact-copy-button" onClick={() => navigator.clipboard.writeText('0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a')} title="Copy Address">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#000000">
+                      <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <div className="vault-link">
-                <a 
-                  href="https://app.hyperliquid.xyz/vaults/0xba9e8b2d5941a196288c6e22d1fab9aef6e0497a" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="vault-link-button"
-                  title="View vault on Hyperliquid"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                  </svg>
-                  View on Hyperliquid
-                </a>
+              <div className="alp-section-compact">
+                <div className="alp-section-header">
+                  <div className="alp-section-title">Aster Liquidity</div>
+                  <a href="https://www.asterdex.com/en/earn/alp" target="_blank" rel="noopener noreferrer" className="section-link" title="View ALP Pool">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                    </svg>
+                  </a>
+                </div>
+                <div className="alp-compact-info">
+                  <div className="alp-compact-row">
+                    <span className="alp-compact-label">Holdings:</span>
+                    <span className="alp-compact-value">{alpBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ALP</span>
+                  </div>
+                  <div className="alp-compact-row">
+                    <span className="alp-compact-label">APY:</span>
+                    <span className="alp-compact-value alp-apy-compact">30%</span>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <ALPDisplay 
-              totalHoldings={alpBalance}
-              currentAPY={30}
-              alpTokenUrl="https://www.asterdex.com/en/earn/alp"
-            />
           </section>
 
         </div>

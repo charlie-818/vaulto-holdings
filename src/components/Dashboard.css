@@ -684,15 +684,15 @@
   .main-content {
     padding: 0;
     padding-left: 0;
-    padding-top: calc(60px + 1rem); /* Account for mobile header height */
+    padding-top: calc(60px + 0.5rem); /* Reduced padding to bring content closer to header */
     padding-right: 0;
     max-width: 100%;
   }
   
   .hero-section {
-    padding: 2rem 1rem 1rem 1rem;
+    padding: 1rem 1rem 1rem 1rem;
     margin-bottom: 0.5rem;
-    margin-top: 3rem; /* Increased spacing above for new header on mobile */
+    margin-top: 1.5rem; /* Reduced spacing above to bring prices closer to header */
     width: 100vw;
     margin-left: calc(-50vw + 50%);
   }
@@ -847,8 +847,9 @@
   
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
     padding: 0 1rem;
+    row-gap: 1.5rem;
   }
   
   .section-title {
@@ -883,6 +884,7 @@
   
   .primary-metrics {
     margin-top: 0;
+    margin-bottom: 2rem;
   }
   
   .positions-grid {
@@ -904,15 +906,15 @@
   .main-content {
     padding: 0;
     padding-left: 0;
-    padding-top: calc(55px + 0.5rem); /* Account for small mobile header height */
+    padding-top: calc(55px + 0.25rem); /* Reduced padding to bring content closer to header */
     padding-right: 0;
     max-width: 100%;
   }
   
   .hero-section {
-    padding: 1.5rem 0.75rem 0.75rem 0.75rem;
+    padding: 0.75rem 0.75rem 0.75rem 0.75rem;
     margin-bottom: 0.5rem;
-    margin-top: 2.5rem; /* Increased spacing above for new header on small mobile */
+    margin-top: 1.25rem; /* Reduced spacing above to bring prices closer to header */
     width: 100vw;
     margin-left: calc(-50vw + 50%);
   }
@@ -1063,8 +1065,9 @@
   
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
     padding: 0 0.75rem;
+    row-gap: 1.25rem;
   }
   
   .positions-grid {
@@ -1129,6 +1132,152 @@
   .performance-section,
   .positions-section {
     margin-bottom: 1rem;
+  }
+}
+
+/* Combined Vault and ALP Info Box for Mobile */
+.combined-vault-alp-info {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
+}
+
+.vault-section-compact,
+.alp-section-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vault-section-header,
+.alp-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.vault-section-title,
+.alp-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.section-link:hover {
+  color: var(--text-primary);
+}
+
+.vault-compact-address {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.5rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  gap: 0.5rem;
+}
+
+.compact-address-text {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.compact-copy-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.compact-copy-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+}
+
+.section-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.alp-compact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.alp-compact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alp-compact-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.alp-compact-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.alp-apy-compact {
+  color: var(--success-color);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .combined-vault-alp-info {
+    padding: 0.65rem;
+  }
+  
+  .vault-section-title,
+  .alp-section-title {
+    font-size: 0.7rem;
+  }
+  
+  .compact-address-text {
+    font-size: 0.65rem;
+  }
+  
+  .alp-compact-label,
+  .alp-compact-value {
+    font-size: 0.65rem;
+  }
+  
+  .alp-apy-compact {
+    font-size: 0.7rem;
   }
 }
 

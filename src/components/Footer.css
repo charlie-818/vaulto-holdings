@@ -284,6 +284,8 @@
   .footer-content {
     flex-direction: column;
     text-align: center;
+    justify-content: center;
+    align-items: center;
     gap: 1.5rem;
   }
   
@@ -292,18 +294,21 @@
   }
   
   .email-input-group {
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
+    max-width: 400px;
   }
   
   .email-input {
-    min-width: 100%;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
   }
   
   .email-submit-btn {
-    width: 100%;
-    min-width: 100%;
+    flex-shrink: 0;
+    min-width: 48px;
+    height: 100%;
+    min-height: 44px;
   }
   
   .email-status {

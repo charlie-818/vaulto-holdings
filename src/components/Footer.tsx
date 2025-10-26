@@ -25,7 +25,7 @@ const Footer: React.FC<FooterProps> = ({ dataSources }) => {
       formData.append('id', 'dc4af6dff9');
       formData.append('f_id', '00728ce0f0');
 
-      const response = await fetch('https://vaulto.us15.list-manage.com/subscribe/post?u=4e3f80ec414b40367852952ec&id=dc4af6dff9&f_id=00728ce0f0', {
+      await fetch('https://vaulto.us15.list-manage.com/subscribe/post?u=4e3f80ec414b40367852952ec&id=dc4af6dff9&f_id=00728ce0f0', {
         method: 'POST',
         body: formData,
         mode: 'no-cors'

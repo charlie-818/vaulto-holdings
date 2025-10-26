@@ -31,7 +31,7 @@
 /* Positions Section */
 .positions-section {
   margin-bottom: 1.5rem;
-  margin-top: 1rem; /* Extra space above for fixed header */
+ 
 }
 
 .section-title {
@@ -543,7 +543,7 @@
 .primary-metrics {
   margin-bottom: 1.5rem;
   padding: 0 1rem;
-  margin-top: 1.5rem; /* Extra space above for fixed header */
+
 }
 
 .metrics-grid {

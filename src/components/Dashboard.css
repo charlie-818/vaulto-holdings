@@ -9,6 +9,7 @@
   margin: 0 auto;
   padding-left: 1rem;
   padding-right: 1rem;
+  padding-top: calc(70px + 2rem); /* Account for fixed header height */
 }
 
 /* Error Banner */
@@ -680,6 +681,7 @@
   .main-content {
     padding: 0;
     padding-left: 0;
+    padding-top: calc(60px + 1rem); /* Account for mobile header height */
     padding-right: 0;
     max-width: 100%;
   }
@@ -898,6 +900,7 @@
   .main-content {
     padding: 0;
     padding-left: 0;
+    padding-top: calc(55px + 0.5rem); /* Account for small mobile header height */
     padding-right: 0;
     max-width: 100%;
   }

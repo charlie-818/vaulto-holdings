@@ -2,8 +2,14 @@
   background-color: #000000;
   color: #ffffff;
   position: sticky;
+  position: -webkit-sticky; /* Safari support */
   top: 0;
   z-index: 100;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s ease;
 }
 
 .container {

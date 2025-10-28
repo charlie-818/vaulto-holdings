@@ -130,7 +130,7 @@ export const etherscanAPI = {
   /**
    * Get ALP token price in USD
    * Since ALP pool token value is unlikely to change frequently,
-   * this returns a constant fallback value of 798.1402
+   * this returns a constant fallback value of 798.14
    * In the future, this could be enhanced to fetch real-time price data
    */
   getALPTokenPrice: async (): Promise<number> => {

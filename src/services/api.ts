@@ -459,8 +459,19 @@ export const hyperliquidAPI = {
     const navUsd = parseFloat(marginSummary.accountValue);
     const navEth = navUsd / ethPrice;
     
-    // Calculate total vault value
-    const totalValueUsd = navUsd + parseFloat(marginSummary.totalNtlPos);
+    // Calculate total vault value as sum of all position market values
+    const totalValueUsd = assetPositions.reduce((sum: number, pos: any) => {
+      const currentPrice = currentPrices[pos.position.coin];
+      const positionSize = parseFloat(pos.position.szi);
+      
+      if (currentPrice && positionSize) {
+        // Calculate market value: absolute position size × current price
+        const positionValue = Math.abs(positionSize) * currentPrice;
+        return sum + positionValue;
+      }
+      
+      return sum;
+    }, 0);
     const totalValueEth = totalValueUsd / ethPrice;
     
     // Calculate unrealized PnL using current market prices

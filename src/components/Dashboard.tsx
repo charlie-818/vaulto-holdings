@@ -34,8 +34,8 @@ const Dashboard: React.FC = () => {
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
   
-  // ALP token balance state - hardcoded to 798.14
-  const [alpBalance] = useState<number>(798.14);
+  // ALP token balance state - hardcoded to 0
+  const [alpBalance] = useState<number>(0);
 
   // Use simple prices hook - non-blocking
   const { ethPrice, btcPrice } = useSimplePrices();

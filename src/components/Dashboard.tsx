@@ -489,9 +489,6 @@ const Dashboard: React.FC = () => {
                   <div key={index} className="position-card">
                     <div className="position-header">
                       <div className="position-asset">{position.coin}</div>
-                      <div className={`position-pnl ${position.unrealizedPnl >= 0 ? 'positive' : 'negative'}`}>
-                        ${position.unrealizedPnl.toFixed(2)}
-                      </div>
                     </div>
                     <div className="position-details">
                       <div className="position-row">

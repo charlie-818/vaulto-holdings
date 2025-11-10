@@ -93,23 +93,6 @@
   color: var(--text-primary);
 }
 
-.position-pnl {
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-}
-
-.position-pnl.positive {
-  color: var(--success-color);
-  background-color: rgba(16, 185, 129, 0.1);
-}
-
-.position-pnl.negative {
-  color: var(--danger-color);
-  background-color: rgba(239, 68, 68, 0.1);
-}
-
 .position-details {
   display: flex;
   flex-direction: column;

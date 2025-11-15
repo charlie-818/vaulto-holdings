@@ -99,35 +99,6 @@ const Footer: React.FC<FooterProps> = ({ dataSources }) => {
             </div>
           </div>
         </div>
-
-        
-        <div className="footer-disclaimer">
-          <div className="disclaimer-content">
-            <div className="disclaimer-text">
-              <p><strong>IMPORTANT RISK WARNING</strong></p>
-              
-              <p>Before investing in Vaulto's strategies, you must carefully consider the following risks and understand that cryptocurrency investments, including leveraged exposure to Ethereum, carry significant financial risks. The value of your investment can decrease as well as increase, and you may lose some or all of your invested capital. Past performance does not guarantee future results.</p>
-              
-              <p><strong>Market & Volatility Risk:</strong> Cryptocurrency markets are highly volatile and subject to extreme price fluctuations. Market conditions can change rapidly, potentially resulting in substantial losses. The inherent volatility of digital assets means that investments can experience significant value changes over short periods.</p>
-              
-              <p><strong>Leverage Risk:</strong> This vault utilizes leverage mechanisms that amplify both potential gains and losses. Leveraged positions may be subject to liquidation if market conditions deteriorate beyond certain thresholds. You should only invest amounts you can afford to lose completely.</p>
-              
-              <p><strong>Regulatory Risk:</strong> Cryptocurrency regulations are continuously evolving globally. Changes in regulatory frameworks may impact the operation, availability, or value of vault strategies. Regulatory developments could affect market access, taxation, or the legal status of cryptocurrency investments.</p>
-              
-              <p><strong>Technical Risk:</strong> Smart contracts, blockchain technology, and decentralized protocols carry inherent technical risks including software bugs, security vulnerabilities, network failures, and potential exploits that could result in partial or total loss of funds.</p>
-              
-              <p><strong>Operational Risk:</strong> Vault operations depend on various external factors including network stability, liquidity availability, and third-party service providers. Any disruption to these systems could impact vault performance or accessibility.</p>
-              
-              <p><strong>Disclaimer of Advice:</strong> This information is provided for educational and informational purposes only. It does not constitute investment advice, financial advice, trading advice, or any other form of professional recommendation. Always conduct thorough independent research and consider consulting with qualified financial advisors before making investment decisions.</p>
-              
-              <p><strong>No Guarantees:</strong> Vaulto makes no representations or warranties regarding investment returns, capital preservation, or the success of any investment strategy. All investments carry inherent risks, and there is no assurance that any investment approach will achieve its objectives or avoid losses.</p>
-              
-              <p><strong>Your Responsibility:</strong> You acknowledge that you understand these risks and are solely responsible for your investment decisions. You confirm that you have the financial capacity to bear the potential loss of your entire investment and that investing in cryptocurrency vault strategies aligns with your risk tolerance and investment objectives.</p>
-              
-              <p><em>By proceeding with any investment, you acknowledge that you have read, understood, and accept these risks.</em></p>
-            </div>
-          </div>
-        </div>
       </div>
     </footer>
   );

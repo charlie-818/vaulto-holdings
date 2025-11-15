@@ -1,15 +1,175 @@
 .dashboard {
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--background-color);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .main-content {
+  flex: 1;
   padding: 2rem 0;
   max-width: 1400px;
   margin: 0 auto;
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: calc(70px + 2rem); /* Account for fixed header height */
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Coming Soon Section */
+.coming-soon-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+  padding: 3rem 1rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.coming-soon-content {
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.coming-soon-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.coming-soon-description {
+  font-size: 1.25rem;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.coming-soon-email-form {
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.coming-soon-input-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  width: 100%;
+}
+
+.coming-soon-email-input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+.coming-soon-email-input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.coming-soon-email-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.coming-soon-email-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coming-soon-submit-btn {
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 56px;
+  flex-shrink: 0;
+}
+
+.coming-soon-submit-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.coming-soon-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.coming-soon-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.coming-soon-submit-btn.success {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.coming-soon-status {
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+  padding: 0.5rem 0;
+  color: #ffffff;
+}
+
+.coming-soon-status.success {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.coming-soon-status.error {
+  color: #ef4444;
+  font-weight: 500;
 }
 
 /* Error Banner */
@@ -659,6 +819,59 @@
   .risk-cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
+  }
+}
+
+/* Coming Soon Responsive Styles */
+@media (max-width: 768px) {
+  .coming-soon-section {
+    min-height: calc(100vh - 150px);
+    padding: 2rem 1rem;
+  }
+
+  .coming-soon-content {
+    gap: 1.5rem;
+  }
+
+  .coming-soon-title {
+    font-size: 2.5rem;
+  }
+
+  .coming-soon-description {
+    font-size: 1.1rem;
+  }
+
+  .coming-soon-email-form {
+    max-width: 100%;
+  }
+
+  .coming-soon-input-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .coming-soon-submit-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .coming-soon-email-input {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .coming-soon-section {
+    padding: 1.5rem 0.75rem;
+    min-height: calc(100vh - 130px);
+  }
+
+  .coming-soon-title {
+    font-size: 2rem;
+  }
+
+  .coming-soon-description {
+    font-size: 1rem;
   }
 }
 

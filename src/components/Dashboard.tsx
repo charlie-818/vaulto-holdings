@@ -6,7 +6,6 @@ import { useSimplePrices } from '../hooks/useSimplePrices';
 import { detectNewPositions, trackAllPositions, isFirstRun } from '../services/positionTracker';
 import Header from './Header';
 import MetricCard from './MetricCard';
-import Footer from './Footer';
 import LoadingSpinner from './LoadingSpinner';
 import TopDepositors from './TopDepositors';
 import ALPDisplay from './ALPDisplay';
@@ -30,12 +29,17 @@ const Dashboard: React.FC = () => {
 
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
   const [positions, setPositions] = useState<Position[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
   
   // ALP token balance state - hardcoded to 0
   const [alpBalance] = useState<number>(0);
+
+  // Coming Soon email form state
+  const [comingSoonEmail, setComingSoonEmail] = useState('');
+  const [isSubmittingComingSoon, setIsSubmittingComingSoon] = useState(false);
+  const [comingSoonSubmitStatus, setComingSoonSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   // Use simple prices hook - non-blocking
   const { ethPrice, btcPrice } = useSimplePrices();
@@ -260,21 +264,11 @@ const Dashboard: React.FC = () => {
 
 
 
-  // Initial data fetch
+  // Initial data fetch - run in background without blocking UI
   useEffect(() => {
     const initializeData = async () => {
-      setLoading(true);
-      setLoadingStage('initializing');
-      
-      // Simulate a brief initialization delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Fetch vault data
+      // Fetch vault data in background without blocking Coming Soon display
       await fetchVaultData();
-      
-      // Brief delay before hiding loading to show completion
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setLoading(false);
     };
 
     initializeData();
@@ -338,12 +332,101 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // Mailchimp form submission handler
+  const handleComingSoonEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comingSoonEmail) return;
+
+    setIsSubmittingComingSoon(true);
+    setComingSoonSubmitStatus('idle');
+
+    try {
+      const formData = new FormData();
+      formData.append('EMAIL', comingSoonEmail);
+      formData.append('u', '4e3f80ec414b40367852952ec');
+      formData.append('id', 'dc4af6dff9');
+      formData.append('f_id', '00728ce0f0');
+
+      await fetch('https://vaulto.us15.list-manage.com/subscribe/post?u=4e3f80ec414b40367852952ec&id=dc4af6dff9&f_id=00728ce0f0', {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+      });
+
+      setComingSoonSubmitStatus('success');
+      setComingSoonEmail('');
+    } catch (error) {
+      setComingSoonSubmitStatus('error');
+    } finally {
+      setIsSubmittingComingSoon(false);
+    }
+  };
+
   return (
     <div className="dashboard">
       <Header />
       
+      {/* Background Video */}
+      <video 
+        className="background-video" 
+        autoPlay 
+        loop 
+        muted 
+        playsInline
+      >
+        <source src="/background.mp4" type="video/mp4" />
+      </video>
+      
       <main className="main-content">
         <div className="container">
+          {/* Coming Soon Section */}
+          <section className="coming-soon-section">
+            <div className="coming-soon-content">
+              <h1 className="coming-soon-title">Coming Soon</h1>
+              <p className="coming-soon-description">
+                We're building something amazing. Stay tuned for updates and be the first to know when we launch.
+              </p>
+              
+              <form onSubmit={handleComingSoonEmailSubmit} className="coming-soon-email-form">
+                <div className="coming-soon-input-group">
+                  <input
+                    type="email"
+                    value={comingSoonEmail}
+                    onChange={(e) => setComingSoonEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    className="coming-soon-email-input"
+                    disabled={isSubmittingComingSoon || comingSoonSubmitStatus === 'success'}
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isSubmittingComingSoon || comingSoonSubmitStatus === 'success'}
+                    className={`coming-soon-submit-btn ${comingSoonSubmitStatus === 'success' ? 'success' : ''}`}
+                  >
+                    {comingSoonSubmitStatus === 'success' ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {comingSoonSubmitStatus === 'success' && (
+                  <p className="coming-soon-status success">Thanks! We'll keep you updated.</p>
+                )}
+                {comingSoonSubmitStatus === 'error' && (
+                  <p className="coming-soon-status error">Please try again later.</p>
+                )}
+              </form>
+            </div>
+          </section>
+
+          {/* Existing dashboard content hidden - keeping code intact for future use */}
+          {false && (
+            <>
           {/* Error Banner */}
           {error && (
             <div className="error-banner">
@@ -359,14 +442,15 @@ const Dashboard: React.FC = () => {
               <div className="hero-prices">
                 <div className="hero-price eth-price-box">
                   <div className="price-label">Ethereum</div>
-                  {ethPrice ? (
+                  {ethPrice && (
                     <>
-                      <div className="price-value">${Math.round(ethPrice.current).toLocaleString('en-US')}</div>
-                      <div className={`price-change ${ethPrice.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {ethPrice.dailyChangePercent >= 0 ? '+' : ''}{ethPrice.dailyChangePercent.toFixed(2)}%
+                      <div className="price-value">${Math.round(ethPrice!.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${ethPrice!.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {ethPrice!.dailyChangePercent >= 0 ? '+' : ''}{ethPrice!.dailyChangePercent.toFixed(2)}%
                       </div>
                     </>
-                  ) : (
+                  )}
+                  {!ethPrice && (
                     <>
                       <div className="price-value price-error">Price unavailable</div>
                       <div className="price-change price-error">Check connection</div>
@@ -375,14 +459,15 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="hero-price btc-price-box">
                   <div className="price-label">Bitcoin</div>
-                  {btcPrice ? (
+                  {btcPrice && (
                     <>
-                      <div className="price-value">${Math.round(btcPrice.current).toLocaleString('en-US')}</div>
-                      <div className={`price-change ${btcPrice.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                        {btcPrice.dailyChangePercent >= 0 ? '+' : ''}{btcPrice.dailyChangePercent.toFixed(2)}%
+                      <div className="price-value">${Math.round(btcPrice!.current).toLocaleString('en-US')}</div>
+                      <div className={`price-change ${btcPrice!.dailyChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                        {btcPrice!.dailyChangePercent >= 0 ? '+' : ''}{btcPrice!.dailyChangePercent.toFixed(2)}%
                       </div>
                     </>
-                  ) : (
+                  )}
+                  {!btcPrice && (
                     <>
                       <div className="price-value price-error">Price unavailable</div>
                       <div className="price-change price-error">Check connection</div>
@@ -462,13 +547,13 @@ const Dashboard: React.FC = () => {
               
               <MetricCard
                 title="30D APR"
-                value={`${comprehensiveMetrics?.vaultDetails?.apr ? (comprehensiveMetrics.vaultDetails.apr * 100).toFixed(2) : '0.00'}%`}
+                value={`${comprehensiveMetrics?.vaultDetails?.apr ? ((comprehensiveMetrics?.vaultDetails?.apr || 0) * 100).toFixed(2) : '0.00'}%`}
                 tooltip="30-Day Annual Percentage Rate (APR) represents the expected annual return on investment for vault depositors based on the last 30 days of performance. This is calculated based on the vault's recent historical performance and current strategy."
               />
               
               <MetricCard
                 title="Leader Fraction"
-                value={`${comprehensiveMetrics?.vaultDetails?.leaderFraction ? (comprehensiveMetrics.vaultDetails.leaderFraction * 100).toFixed(2) : '0.00'}%`}
+                value={`${comprehensiveMetrics?.vaultDetails?.leaderFraction ? ((comprehensiveMetrics?.vaultDetails?.leaderFraction || 0) * 100).toFixed(2) : '0.00'}%`}
                 tooltip="The leader fraction represents the percentage of the vault's total value that belongs to the vault leader. This shows how much of the vault's capital is owned by the leader versus depositors."
               />
             </div>
@@ -523,10 +608,10 @@ const Dashboard: React.FC = () => {
 
 
           {/* Top Depositors */}
-          {comprehensiveMetrics && comprehensiveMetrics.topDepositors.length > 0 && (
+          {comprehensiveMetrics?.topDepositors && (comprehensiveMetrics?.topDepositors?.length ?? 0) > 0 && (
             <TopDepositors 
-              depositors={comprehensiveMetrics.topDepositors} 
-              leaderAddress={comprehensiveMetrics.vaultDetails.leader}
+              depositors={comprehensiveMetrics!.topDepositors} 
+              leaderAddress={comprehensiveMetrics!.vaultDetails?.leader || ''}
             />
           )}
 
@@ -574,11 +659,11 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </section>
+            </>
+          )}
 
         </div>
       </main>
-      
-      <Footer dataSources={dataSources} />
     </div>
   );
 };

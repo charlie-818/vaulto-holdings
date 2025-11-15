@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VaultMetrics, DataSource, ComprehensiveVaultMetrics, PositionNotification } from '../types';
-import { mockVaultMetrics, mockDataSources } from '../data/mockData';
+import { VaultMetrics, ComprehensiveVaultMetrics, PositionNotification } from '../types';
+import { mockVaultMetrics } from '../data/mockData';
 import { hyperliquidAPI } from '../services/api';
 import { useSimplePrices } from '../hooks/useSimplePrices';
 import { detectNewPositions, trackAllPositions, isFirstRun } from '../services/positionTracker';
@@ -27,9 +27,8 @@ const Dashboard: React.FC = () => {
   const [vaultMetrics, setVaultMetrics] = useState<VaultMetrics>(mockVaultMetrics);
   const [comprehensiveMetrics, setComprehensiveMetrics] = useState<ComprehensiveVaultMetrics | null>(null);
 
-  const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources);
   const [positions, setPositions] = useState<Position[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'fetching-vault' | 'fetching-prices' | 'calculating' | 'complete'>('initializing');
   const [error, setError] = useState<string | null>(null);
   
@@ -208,25 +207,6 @@ const Dashboard: React.FC = () => {
         console.error('Failed to fetch positions:', positionError);
         setPositions([]);
       }
-      
-      // Update data sources with real-time timestamps
-      setDataSources([
-        {
-          name: 'CoinGecko',
-          url: 'https://coingecko.com',
-          lastUpdated: new Date()
-        },
-        {
-          name: 'Hyperliquid',
-          url: 'https://hyperliquid.xyz',
-          lastUpdated: new Date()
-        },
-        {
-          name: 'Vaulto Holdings',
-          url: 'https://vaulto.ai',
-          lastUpdated: new Date()
-        }
-      ]);
       
       setLoadingStage('complete');
       setError(null);
